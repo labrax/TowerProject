@@ -1,11 +1,14 @@
 package vroth.towergame.gutil;
 
+import java.util.HashMap;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class ResourcesLoader {
+	private HashMap<String, Sprite> cache = new HashMap<String, Sprite>();
 	private static ResourcesLoader instance = null;
 	private Sprite errSprite = null;
 	
@@ -29,8 +32,8 @@ public class ResourcesLoader {
 		return instance;
 	}
 	
-	//TODO: create a cache?
-	public Sprite loadSprite(String file) {
+	
+	private Sprite loadSpriteFile(String file) {
 		try {
 			Texture t = new Texture(file);
 			return new Sprite(t);
@@ -39,5 +42,23 @@ public class ResourcesLoader {
 			System.err.println("Error loading file " + file);
 			return errSprite;
 		}
+	}
+	
+	//TODO: create a cache?
+	public Sprite loadSprite(String file) {
+		if(cache.containsKey(file)) {
+			System.out.println("cache: " + file);
+			return cache.get(file);
+		}
+		else {
+			System.out.println("not cache: " + file);
+			Sprite loaded = loadSpriteFile(file);
+			cache.put(file, loaded);
+			return loaded;
+		}
+	}
+	
+	public Sprite getErrSprite() {
+		return errSprite;
 	}
 }

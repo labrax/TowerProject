@@ -5,14 +5,39 @@ import com.badlogic.gdx.physics.box2d.Body;
 
 public class GTile extends GObject {
 	
-	public GTile(Body body, Sprite staticSprite) {
-		super(body, staticSprite);
+	private Sprite[] sprites;
+	
+	public GTile(Body body, Sprite[] sprites) {
+		super(body, sprites[0]);
+		this.sprites = sprites;
+	}
+	
+	public Sprite getSprite(float stateTime) {
+		/*if(body.getLinearVelocity().y != 0) {
+			System.out.println("drawing tile: " + this);
+			System.out.println(this.staticSprite);
+		}*/
+		return super.getSprite(stateTime);
+	}
+	
+	public Sprite getSprite(boolean top, boolean down, boolean left, boolean right) {
+		int val = 0;
+		if(top)
+			val += 1;
+		if(left)
+			val += 2;
+		if(right)
+			val += 4;
+		if(down)
+			val += 8;
+		
+		return sprites[val];
 	}
 
-	public Sprite getSprite() {
+	/*public Sprite getSprite() {
 		//TODO: use http://gamedevelopment.tutsplus.com/tutorials/how-to-use-tile-bitmasking-to-auto-tile-your-level-layouts--cms-25673
 		return null;
-	}
+	}*/
 	
 	//TODO: all
 }
