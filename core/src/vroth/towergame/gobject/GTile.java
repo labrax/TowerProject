@@ -1,12 +1,12 @@
 package vroth.towergame.gobject;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.physics.box2d.Body;
 
-//TODO: implement
-public class GTile extends GObjectStatic {
+public class GTile extends GObject {
 	
-	public GTile() {
-		super(null);
+	public GTile(Body body, Sprite staticSprite) {
+		super(body, staticSprite);
 	}
 
 	public Sprite getSprite() {
@@ -14,7 +14,5 @@ public class GTile extends GObjectStatic {
 		return null;
 	}
 	
-	public void update() {
-		
-	}
+	//TODO: all
 }

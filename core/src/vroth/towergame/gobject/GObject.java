@@ -1,16 +1,22 @@
 package vroth.towergame.gobject;
 
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.physics.box2d.Body;
 
-public abstract class GObject {
+public class GObject {
+	protected Body body;
+	protected Sprite staticSprite;
 	
-	protected GObject() {
-
+	public GObject(Body body, Sprite staticSprite) {
+		this.body = body;
+		this.staticSprite = staticSprite;
 	}
 	
-	public abstract Sprite getSprite();
+	public Sprite getSprite(float stateTime) {
+		return staticSprite;
+	}
 	
-	public abstract void update();
-
+	public Body getBody() {
+		return body;
+	}
 }
