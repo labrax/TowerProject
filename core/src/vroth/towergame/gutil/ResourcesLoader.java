@@ -47,11 +47,11 @@ public class ResourcesLoader {
 	//TODO: create a cache?
 	public Sprite loadSprite(String file) {
 		if(cache.containsKey(file)) {
-			System.out.println("cache: " + file);
+			//System.out.println("cache: " + file);
 			return cache.get(file);
 		}
 		else {
-			System.out.println("not cache: " + file);
+			//System.out.println("not cache: " + file);
 			Sprite loaded = loadSpriteFile(file);
 			cache.put(file, loaded);
 			return loaded;

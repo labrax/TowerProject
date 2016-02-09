@@ -13,7 +13,10 @@ public class GMapLine {
 	}
 	
 	public GObject getObjectBackground(int x) {
-		return lineBackground[x];
+		if(x >= 0 && x < GConfig.MAP_WIDTH)
+			return lineBackground[x];
+		else
+			return null;
 	}
 	
 	public void setObjectBackground(int x, GObject object) {
@@ -21,7 +24,10 @@ public class GMapLine {
 	}
 	
 	public GObject getObjectForeground(int x) {
-		return lineForeground[x];
+		if(x >= 0 && x < GConfig.MAP_WIDTH)
+			return lineForeground[x];
+		else
+			return null;
 	}
 	
 	public void setObjectForeground(int x, GObject object) {

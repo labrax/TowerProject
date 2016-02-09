@@ -4,8 +4,10 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -36,37 +38,55 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		GConfig.SCREEN_WIDTH = Gdx.graphics.getWidth();
 		GConfig.SCREEN_HEIGHT = Gdx.graphics.getHeight();
 		
-		gameObjects = new Array<GObject>();
-		gameMap = new GMap();
-		
 		world = new World(new Vector2(0, -98f), true);
+		
+		gameObjects = new Array<GObject>();
+		gameMap = new GMap(world);
 		
 		GObjectFactory factory = GObjectFactory.getInstance();
 		GObject tile;
-		for(int i = 0; i < 30; i++) {
+		/*for(int i = 0; i < 30; i++) {
 			tile = factory.newTile(world, "tiles/grass", i*70, 0);
 			gameObjects.add(tile);
 			tile = factory.newTile(world, "tiles/grass", i*70, 70);
 			gameObjects.add(tile);
-		}
-		player = factory.newPlayer(world, "p2/", GConfig.SCREEN_WIDTH/2, GConfig.SCREEN_HEIGHT);
-		gameObjects.add(player);
+		}*/
+		player = factory.newPlayer(world, "p1/", GConfig.MAP_WIDTH/2*70, (GConfig.GENERATION_HEIGHT+1)*70);
+		//gameObjects.add(player);
 		
-		tile = factory.newBox(world, "tiles/grass0.png", GConfig.SCREEN_WIDTH/2+80, GConfig.SCREEN_HEIGHT/2 + 50);
+		/*tile = factory.newBox(world, "tiles/grass0.png", GConfig.SCREEN_WIDTH/2+80, GConfig.SCREEN_HEIGHT/2 + 100);
 		gameObjects.add(tile);
 		
-		tile = factory.newBox(world, "tiles/grass0.png", GConfig.SCREEN_WIDTH/2+80, GConfig.SCREEN_HEIGHT/2);
-		gameObjects.add(tile);
+		tile = factory.newBox(world, "tiles/grass0.png", GConfig.SCREEN_WIDTH/2+80, GConfig.SCREEN_HEIGHT/2 + 150);
+		gameObjects.add(tile);*/
 
 		
 		batch = new SpriteBatch();
 		Gdx.input.setInputProcessor(this);
 		debugRenderer = new Box2DDebugRenderer();
-		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		camera = new OrthographicCamera(GConfig.SCREEN_WIDTH, GConfig.SCREEN_HEIGHT);
+	}
+	
+	private boolean isVisible(Vector2 reference, Vector2 position, Vector2 size) {
+		boolean x = false, y = false;
+		if(position.y - reference.y < GConfig.SCREEN_HEIGHT/2)
+			y = true;
+		if(position.x - reference.x < GConfig.SCREEN_WIDTH/2)
+			x = true;
+		if(reference.y - position.y+size.y > GConfig.SCREEN_HEIGHT/2)
+			y = true;
+		if(reference.x - position.x+size.x > GConfig.SCREEN_WIDTH/2)
+			x = true;
+		
+		if(x == true && y == true)
+			return true;
+		else
+			return false;
 	}
 	
 	public void render() {
 		camera.update();
+		
 		world.step(Gdx.graphics.getDeltaTime(), 6, 2);
 		stateTime += Gdx.graphics.getDeltaTime();
 		player.update(stateTime);
@@ -76,26 +96,63 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		//batch.setProjectionMatrix(camera.combined);
 		//debugMatrix = batch.getProjectionMatrix().cpy();
+		
+		Vector2 refPosition = player.getBody().getPosition();
+		refPosition.x += player.getDimension().x/2;
+		refPosition.y += player.getDimension().y/2;
+		
+		Vector2 drawReference = new Vector2(GConfig.SCREEN_WIDTH/2-refPosition.x, GConfig.SCREEN_HEIGHT/2-refPosition.y);
+		
+		camera.position.set(refPosition, 0);
+		
 		batch.begin();
+		for(int i = 0; i < gameMap.size(); i++) {
+			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
+				GObject b = gameMap.getMapLine(i).getObjectBackground(j);
+				Sprite toDraw = gameMap.getElement(stateTime, j, i, false);
+				if(b != null && toDraw != null && isVisible(refPosition, b.getBody().getPosition(), b.getDimension())) {
+					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+					Color c = batch.getColor();
+					batch.setColor(new Color(0.6f, 0.2f, 0f, 0.7f));
+					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+					batch.setColor(c);
+				}
+				
+				toDraw = gameMap.getElement(stateTime, j, i, true);
+				GObject o = gameMap.getMapLine(i).getObjectForeground(j);
+				if(o != null && toDraw != null && isVisible(refPosition, o.getBody().getPosition(), o.getDimension())) {
+					batch.draw(toDraw, o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
+				}
+			}
+		}
+		batch.flush();
 		
 		for(GObject o: gameObjects) {
 			/*batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x, o.getBody().getPosition().y, 
 					o.getSprite(stateTime).getWidth(), o.getSprite(stateTime).getHeight(), 
 					o.getSprite(stateTime).getScaleX(), o.getSprite(stateTime).getScaleY(), 
 					o.getSprite(stateTime).getRotation());*/
-			batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x, o.getBody().getPosition().y);
-			batch.flush();
+			if(isVisible(refPosition, o.getBody().getPosition(), o.getDimension()))
+				batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
 		}
-		
-		debugRenderer.render(world, batch.getProjectionMatrix());
-		
+		batch.flush();
+
+		batch.draw(player.getSprite(stateTime), player.getBody().getPosition().x + drawReference.x, player.getBody().getPosition().y + drawReference.y);
 		batch.end();
+
+		//cant change debugrenderer position :/
+		//camera.position.set(player.getBody().getPosition().x + drawReference.x, player.getBody().getPosition().y + drawReference.y, 0);
+		//Box2DDebugRenderer.setAxis(new Vector2(player.getBody().getPosition().x + drawReference.x, player.getBody().getPosition().y + drawReference.y));
+		//debugRenderer.render(world, batch.getProjectionMatrix());
+		
+		//debugRenderer.render(world, camera.combined);
 	}
 	
 	public void resize (int width, int height) {
 		GConfig.SCREEN_WIDTH = width;
 		GConfig.SCREEN_HEIGHT = height;
 		batch.getProjectionMatrix().setToOrtho2D(0, 0, width, height);
+		camera = new OrthographicCamera(GConfig.SCREEN_WIDTH, GConfig.SCREEN_HEIGHT);
 	}
 	
 	public void pause() {
@@ -114,16 +171,16 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	@Override
 	public boolean keyDown(int keycode) {
 		if(keycode == Input.Keys.RIGHT) {
-			player.movePlayer(new Vector2(50f, player.getBody().getLinearVelocity().y));
+			player.movePlayer(new Vector2(100f, player.getBody().getLinearVelocity().y));
 			System.out.println("right");
 			
 		}
         if(keycode == Input.Keys.LEFT) {
-        	player.movePlayer(new Vector2(-50f, player.getBody().getLinearVelocity().y));
+        	player.movePlayer(new Vector2(-100f, player.getBody().getLinearVelocity().y));
         	System.out.println("left");
         }
         if(keycode == Input.Keys.SPACE) {
-        	player.movePlayer(new Vector2(player.getBody().getLinearVelocity().x, 200f));
+        	player.movePlayer(new Vector2(player.getBody().getLinearVelocity().x, 300f));
         	System.out.println("space");
         }
 		return true;

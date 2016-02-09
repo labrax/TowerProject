@@ -2,7 +2,7 @@ package vroth.towergame.gobject;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
-public class GAnimation extends GSpriteSource {
+public class GAnimation {
 	private Sprite[] sprites = null;
 	
 	private long timeEach = 1; 
@@ -29,10 +29,5 @@ public class GAnimation extends GSpriteSource {
 				currSprite = 0;
 		}
 		return sprites[currSprite];
-	}
-
-	public Sprite getSprite(float stateTime) {
-		
-		return null;
 	}
 }

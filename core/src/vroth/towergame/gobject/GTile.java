@@ -1,14 +1,15 @@
 package vroth.towergame.gobject;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
 public class GTile extends GObject {
 	
 	private Sprite[] sprites;
 	
-	public GTile(Body body, Sprite[] sprites) {
-		super(body, sprites[0]);
+	public GTile(Body body, Sprite[] sprites, Vector2 dimension) {
+		super(body, sprites[0], dimension);
 		this.sprites = sprites;
 	}
 	
@@ -33,11 +34,4 @@ public class GTile extends GObject {
 		
 		return sprites[val];
 	}
-
-	/*public Sprite getSprite() {
-		//TODO: use http://gamedevelopment.tutsplus.com/tutorials/how-to-use-tile-bitmasking-to-auto-tile-your-level-layouts--cms-25673
-		return null;
-	}*/
-	
-	//TODO: all
 }

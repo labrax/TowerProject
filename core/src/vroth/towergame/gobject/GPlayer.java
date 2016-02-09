@@ -17,8 +17,8 @@ public class GPlayer extends GObject {
 	Sprite duck, front, hurt, jump, stand, badge1, badge2;
 	Animation walk, swim, climb;
 	
-	protected GPlayer(Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Sprite badge1, Sprite badge2) {
-		super(body, front);
+	protected GPlayer(Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Sprite badge1, Sprite badge2, Vector2 dimension) {
+		super(body, front, dimension);
 		isDucking = false;
 		isHurt = false;
 		goRight = true;
