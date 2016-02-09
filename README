@@ -1,8 +1,0 @@
-TowerProject
-
-This is the project source for compiling the game made for Java Game Jam 2016 and Tower Jam 2016.
-
--- Compiling on another machine
-On Linux: run ./gradlew and import project on Eclipse
-On Windows: run gradle.bat and import project on Eclipse
-and so on...
