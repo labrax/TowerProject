@@ -54,11 +54,11 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		player = factory.newPlayer(world, "p1/", GConfig.MAP_WIDTH/2*70, (GConfig.GENERATION_HEIGHT+1)*70);
 		//gameObjects.add(player);
 		
-		/*tile = factory.newBox(world, "tiles/grass0.png", GConfig.SCREEN_WIDTH/2+80, GConfig.SCREEN_HEIGHT/2 + 100);
+		tile = factory.newBox(world, "tiles/boxCoin.png", GConfig.MAP_WIDTH/2*70+100, (GConfig.GENERATION_HEIGHT+1)*70 + 100);
 		gameObjects.add(tile);
 		
-		tile = factory.newBox(world, "tiles/grass0.png", GConfig.SCREEN_WIDTH/2+80, GConfig.SCREEN_HEIGHT/2 + 150);
-		gameObjects.add(tile);*/
+		tile = factory.newBox(world, "tiles/boxCoin.png", GConfig.MAP_WIDTH/2*70+100, (GConfig.GENERATION_HEIGHT+1)*70 + 150);
+		gameObjects.add(tile);
 
 		
 		batch = new SpriteBatch();
@@ -87,10 +87,12 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	public void render() {
 		camera.update();
 		
+		
 		world.step(Gdx.graphics.getDeltaTime(), 6, 2);
 		stateTime += Gdx.graphics.getDeltaTime();
+		
 		player.update(stateTime);
-		//splayer.setPosition(body.getPosition().x, body.getPosition().y);
+		//System.out.println(player.getBody().getLinearVelocity());
 		
 		Gdx.gl.glClearColor(GConfig.BACKGROUND_COLOR.r, GConfig.BACKGROUND_COLOR.g, GConfig.BACKGROUND_COLOR.b, GConfig.BACKGROUND_COLOR.a);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -145,7 +147,7 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		//Box2DDebugRenderer.setAxis(new Vector2(player.getBody().getPosition().x + drawReference.x, player.getBody().getPosition().y + drawReference.y));
 		//debugRenderer.render(world, batch.getProjectionMatrix());
 		
-		//debugRenderer.render(world, camera.combined);
+		debugRenderer.render(world, camera.combined);
 	}
 	
 	public void resize (int width, int height) {
@@ -170,26 +172,11 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-		if(keycode == Input.Keys.RIGHT) {
-			player.movePlayer(new Vector2(100f, player.getBody().getLinearVelocity().y));
-			System.out.println("right");
-			
-		}
-        if(keycode == Input.Keys.LEFT) {
-        	player.movePlayer(new Vector2(-100f, player.getBody().getLinearVelocity().y));
-        	System.out.println("left");
-        }
-        if(keycode == Input.Keys.SPACE) {
-        	player.movePlayer(new Vector2(player.getBody().getLinearVelocity().x, 300f));
-        	System.out.println("space");
-        }
-		return true;
+		return player.keyDown(keycode);
 	}
 
 	public boolean keyUp(int keycode) {
-		
-
-		return false;
+		return player.keyUp(keycode);
 	}
 
 	@Override

@@ -3,13 +3,14 @@ package vroth.towergame.gobject;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.Fixture;
 
 public class GTile extends GObject {
 	
 	private Sprite[] sprites;
 	
-	public GTile(Body body, Sprite[] sprites, Vector2 dimension) {
-		super(body, sprites[0], dimension);
+	public GTile(Fixture fixture, Body body, Sprite[] sprites, Vector2 dimension) {
+		super(fixture, body, sprites[0], dimension);
 		this.sprites = sprites;
 	}
 	

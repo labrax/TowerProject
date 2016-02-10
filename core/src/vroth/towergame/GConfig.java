@@ -16,8 +16,12 @@ public class GConfig {
 	public static float SCALING = 0.8f;
 	
 	public static float HURT_TIME = 0.8f;
-	
-	public static float EPSILON = 0.3f;
+	public static float ANIMATION_FRAME_TIME = 0.1f;
+	public static float SPEED_UP = 10000f;
+	public static float SPEED_WALK = 500f;
+	public static float EPSILON = 0.05f;
+	public static float PLAYER_DENSITY = 50000f;
+	public static float PLAYER_FRICTION = 50f;
 	
 	//collision tests
 	public static final short CATEGORY_FTILE = 0x0001,
@@ -28,5 +32,6 @@ public class GConfig {
 	public static final short MASK_NO_TOUCH = 0,
 			MASK_FTILE = -1 & (~CATEGORY_BTILE),
 			MASK_PLAYER = CATEGORY_FTILE | CATEGORY_MONSTER,
-			MASK_MONSTER = CATEGORY_FTILE | CATEGORY_PLAYER;
+			MASK_MONSTER = CATEGORY_FTILE | CATEGORY_PLAYER,
+			MASK_ALL = -1;
 }

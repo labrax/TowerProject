@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
@@ -51,7 +52,7 @@ public class GObjectFactory {
 		walkArray.add(rl.loadSprite(folder + "walk09.png"));
 		walkArray.add(rl.loadSprite(folder + "walk10.png"));
 		walkArray.add(rl.loadSprite(folder + "walk11.png"));
-		Animation walk = new Animation(0.2f, walkArray);
+		Animation walk = new Animation(GConfig.ANIMATION_FRAME_TIME, walkArray);
 		
 		Sprite badge1 = rl.loadSprite(folder + "badge1.png");
 		Sprite badge2 = rl.loadSprite(folder + "badge2.png");
@@ -67,23 +68,24 @@ public class GObjectFactory {
 		Animation climb = new Animation(0.2f, climbArray);
 		
 		PolygonShape shape = new PolygonShape();
-		shape.setAsBox(front.getWidth()/2, front.getHeight()/2, new Vector2(front.getWidth()/2, front.getHeight()/2), 0);
+		shape.setAsBox(front.getWidth()/3, front.getHeight()/2, new Vector2(front.getWidth()/2, front.getHeight()/2), 0);
 		
 		Vector2 dimension = new Vector2(front.getWidth(), front.getHeight());
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
-        fixtureDef.density = 1f;
-        fixtureDef.restitution = 0.1f;
+        fixtureDef.density = GConfig.PLAYER_DENSITY;
+        //fixtureDef.restitution = 0f;
+        fixtureDef.friction = GConfig.PLAYER_FRICTION;
         fixtureDef.filter.categoryBits = GConfig.CATEGORY_PLAYER;
         fixtureDef.filter.maskBits = GConfig.MASK_PLAYER;
 
-        body.createFixture(fixtureDef);
+        Fixture fixture = body.createFixture(fixtureDef);
         body.setFixedRotation(true);
 				
 		shape.dispose();
 		
-		return new GPlayer(body, duck, front, hurt, jump, stand, walk, swim, climb, badge1, badge2, dimension); 
+		return new GPlayer(fixture, body, duck, front, hurt, jump, stand, walk, swim, climb, badge1, badge2, dimension); 
 	}
 	
 	public GTile newTile(World world, String filePrefix, int posX, int posY) {
@@ -107,11 +109,11 @@ public class GObjectFactory {
         fixtureDef.filter.categoryBits = GConfig.CATEGORY_FTILE;
         fixtureDef.filter.maskBits = GConfig.MASK_FTILE;
         
-        body.createFixture(fixtureDef);
+        Fixture fixture = body.createFixture(fixtureDef);
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GTile(body, sprites, dimension);
+		return new GTile(fixture, body, sprites, dimension);
 	}
 	
 	public GTile newTile(World world, String filePrefix, int posX, int posY, boolean physics) {
@@ -138,11 +140,11 @@ public class GObjectFactory {
         fixtureDef.filter.categoryBits = GConfig.CATEGORY_BTILE;
         fixtureDef.filter.maskBits = GConfig.MASK_NO_TOUCH;
         
-        body.createFixture(fixtureDef);
+        Fixture fixture = body.createFixture(fixtureDef);
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GTile(body, sprites, dimension);
+		return new GTile(fixture, body, sprites, dimension);
 	}
 	
 	public GObject newStaticObject(World world, String file, int posX, int posY) {
@@ -161,15 +163,15 @@ public class GObjectFactory {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 1f;
-        fixtureDef.restitution = 0.5f;
+        //fixtureDef.restitution = 0.5f;
         fixtureDef.filter.categoryBits = GConfig.CATEGORY_FTILE;
         fixtureDef.filter.maskBits = GConfig.MASK_FTILE;
         
-        body.createFixture(fixtureDef);
+        Fixture fixture = body.createFixture(fixtureDef);
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GObject(body, staticSprite, dimension);
+		return new GObject(fixture, body, staticSprite, dimension);
 	}
 	
 	public GObject newStaticObject(World world, String file, int posX, int posY, boolean physics) {
@@ -191,24 +193,24 @@ public class GObjectFactory {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 1f;
-        fixtureDef.restitution = 0.5f;
+        //fixtureDef.restitution = 0.5f;
         fixtureDef.filter.categoryBits = GConfig.CATEGORY_BTILE;
         fixtureDef.filter.maskBits = GConfig.MASK_NO_TOUCH;
         
-        body.createFixture(fixtureDef);
+        Fixture fixture = body.createFixture(fixtureDef);
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GObject(body, staticSprite, dimension);
+		return new GObject(fixture, body, staticSprite, dimension);
 	}
 	
-	public GObject newBox(World world, String folder, int posX, int posY) {
+	public GObject newBox(World world, String file, int posX, int posY) {
 		BodyDef bodyDef = new BodyDef();
 		bodyDef.type = BodyDef.BodyType.DynamicBody;
 		bodyDef.position.set(posX, posY);
 		Body body = world.createBody(bodyDef);
 		
-		Sprite staticSprite = ResourcesLoader.getResourcesLoader().loadSprite(folder);
+		Sprite staticSprite = ResourcesLoader.getResourcesLoader().loadSprite(file);
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(staticSprite.getWidth()/2, staticSprite.getHeight()/2, new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2), 0);
@@ -217,16 +219,16 @@ public class GObjectFactory {
 		
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
-        fixtureDef.density = 1f;
-        fixtureDef.restitution = 0.5f;
+        fixtureDef.density = 500f;
+        //fixtureDef.restitution = 0.5f;
         
-        fixtureDef.filter.categoryBits = GConfig.CATEGORY_FTILE;
-        fixtureDef.filter.maskBits = GConfig.MASK_FTILE;
+        fixtureDef.filter.categoryBits = GConfig.CATEGORY_MONSTER;
+        fixtureDef.filter.maskBits = GConfig.MASK_ALL;
         
-        body.createFixture(fixtureDef);
+        Fixture fixture = body.createFixture(fixtureDef);
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GObject(body, staticSprite, dimension);
+		return new GObject(fixture, body, staticSprite, dimension);
 	}
 }
