@@ -86,7 +86,7 @@ public class GPlayer extends GObject {
 	}
 	
 	public boolean keyDown(int keycode) {
-		System.out.println("keydown: " + keycode);
+		//System.out.println("keydown: " + keycode);
 		switch (keycode) {
 			case Input.Keys.LEFT:
 				keyLeft = true;
@@ -109,7 +109,7 @@ public class GPlayer extends GObject {
 	}
 	
 	public boolean keyUp(int keycode) {
-		System.out.println("keyup: " + keycode);
+		//System.out.println("keyup: " + keycode);
 		switch (keycode) {
 			case Input.Keys.LEFT:
 				keyLeft = false;
@@ -135,7 +135,7 @@ public class GPlayer extends GObject {
 	}
 	
 	private void movePlayer(Vector2 velocity) {
-		System.out.println("Setting " + velocity + " (" + body.getLinearVelocity() + ")");
+		//System.out.println("Setting " + velocity + " (" + body.getLinearVelocity() + ")");
 		body.setLinearVelocity(velocity);
 	}
 	
@@ -144,10 +144,10 @@ public class GPlayer extends GObject {
 	}
 	
 	public void setState(float stateTime, STATE newState) {
-		if(newState != currState) {
+		/*if(newState != currState) {
 			System.out.println(currState + " -> " + newState + " (" + this.stateTime + ")");
 			System.out.println(body.getLinearVelocity());
-		}
+		}*/
 		this.stateTime = stateTime;
 		this.currState = newState;
 	}
@@ -207,9 +207,9 @@ public class GPlayer extends GObject {
 				else if(equalZero(velocity.y) && equalZero(velocity.x))
 					setState(stateTime, STATE.STOP);
 				else {
-					if(keyLeft && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME)
+					if(keyLeft/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
 						movePlayer(new Vector2((body.getLinearVelocity().x < -GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : -GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
-					else if(keyRight && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME)
+					else if(keyRight/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
 						movePlayer(new Vector2((body.getLinearVelocity().x > GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
 					if(keyUp) {
 						body.applyLinearImpulse(new Vector2(0, GConfig.SPEED_UP), new Vector2(body.getPosition().x, body.getPosition().y), true);
@@ -223,9 +223,9 @@ public class GPlayer extends GObject {
 					applyHurt();
 				else if(equalZero(velocity.y) || lessThanZero(velocity.y))
 					setState(stateTime, STATE.FALL);
-				else if(keyLeft && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME)
+				else if(keyLeft/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
 					movePlayer(new Vector2((body.getLinearVelocity().x < -GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : -GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
-				else if(keyRight && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME)
+				else if(keyRight/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
 					movePlayer(new Vector2((body.getLinearVelocity().x > GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
 				break;
 			case STOP:

@@ -1,5 +1,7 @@
 package vroth.towergame;
 
+import java.awt.DisplayMode;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -35,6 +37,7 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	private GMap gameMap = null;
 	
 	public void create() {
+		//Gdx.graphics.setWindowedMode(800, 600);
 		GConfig.SCREEN_WIDTH = Gdx.graphics.getWidth();
 		GConfig.SCREEN_HEIGHT = Gdx.graphics.getHeight();
 		

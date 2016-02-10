@@ -28,7 +28,7 @@ public class GMap {
 	public GMap(World world) {
 		this.world = world;
 		mapLines = new ArrayList<GMapLine>();
-		generateMap();
+		generateMapV2();
 	}
 	
 	public int size() {
@@ -102,9 +102,9 @@ public class GMap {
 	public Array<Vector2> getPathGeneration(Vector2 origin, Vector2 target) {
 		Array<Vector2> path = null;
 		
-		int[][] distance = new int[GConfig.INITIAL_HEIGHT][];
-		Vector2[][] previous = new Vector2[GConfig.INITIAL_HEIGHT][];
-		for(int i = 0; i < GConfig.INITIAL_HEIGHT; i++) {
+		int[][] distance = new int[GConfig.GENERATION_HEIGHT][];
+		Vector2[][] previous = new Vector2[GConfig.GENERATION_HEIGHT][];
+		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
 			distance[i] = new int[GConfig.MAP_WIDTH];
 			previous[i] = new Vector2[GConfig.MAP_WIDTH];
 			
@@ -135,7 +135,7 @@ public class GMap {
 			for(int i = (int) curr.y-1; i <= (int) curr.y+1; i++) {
 				for(int j = (int) curr.x-1; j <= (int) curr.x+1; j++) {
 					//test if it is valid
-					if(i >= 0 && j >= 0 && i < GConfig.INITIAL_HEIGHT && j < GConfig.MAP_WIDTH) {
+					if(i >= 0 && j >= 0 && i < GConfig.GENERATION_HEIGHT && j < GConfig.MAP_WIDTH) {
 						Vector2 test = new Vector2(j, i);
 						
 						//test if the distance is better
@@ -178,10 +178,157 @@ public class GMap {
 		return path;
 	}
 	
-	public void generateMap() {
-		int iron = 0x10, gold = 0x11;
-		int nothing = 0x0, dirt = 0x1;
+	int iron = 0x10, gold = 0x11;
+	int nothing = 0x0, dirt = 0x1;
+	
+	public void generateMapV2() {
+		int amountPathIron = 0;
 		
+		//minimum A for a proper parabol
+		double eqA = ((double) GConfig.GENERATION_HEIGHT)/((GConfig.MAP_WIDTH/2)*(GConfig.MAP_WIDTH/2));
+		
+		//lets add some error or maximum 10% of A
+		double eqAerr = r.nextBoolean() ? r.nextFloat()/10*eqA : r.nextFloat()/-10*eqA;
+		eqA += eqAerr;
+		
+		//get mininum C for an equation with 2 on the minimum height
+		double eqC = 1 - eqA*((GConfig.MAP_WIDTH/2)*(GConfig.MAP_WIDTH/2));
+		
+		GConfig.GENERATION_HEIGHT = (int) Math.ceil(-eqC) + 1;
+		
+		//the best option in a concave map, otherwise there will be a 1 line bugged line
+		eqA = -eqA;
+		
+		System.out.println("Using equation " + eqA + "x^2 + " + (eqA > 0 ? 0 : -eqC) + ". GENERATION_HEIGHT is " + GConfig.GENERATION_HEIGHT);
+		
+		int[][] initialMap = new int[GConfig.GENERATION_HEIGHT][];
+		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
+			initialMap[i] = new int[GConfig.MAP_WIDTH];
+			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
+				initialMap[i][j] = nothing;
+			}
+		}
+		
+		for(int i = 0; i < GConfig.MAP_WIDTH/2; i++) {
+			int height = (int) Math.ceil(eqA*i*i + (eqA > 0 ? 0 : -eqC));
+			//System.out.println(height);
+			for(int j = 0; j <= height; j++) {
+				initialMap[j][GConfig.MAP_WIDTH/2+i] = dirt;
+				initialMap[j][GConfig.MAP_WIDTH/2-i] = dirt;
+			}
+		}
+		
+		//System.err.println("Generation dimensions are: " + GConfig.MAP_WIDTH + ", " + GConfig.GENERATION_HEIGHT);
+		for(int lottery = 1; lottery <= GConfig.GENERATION_TRIES; lottery++) {
+			int a = r.nextInt(100);
+			if(a < 30) {
+				if(amountPathIron > GConfig.MAX_AMOUNT_IRON)
+					continue;
+				//generate a path between 2 points with a lot of resources
+				int x1 = r.nextInt(GConfig.MAP_WIDTH);
+				int y1 = r.nextInt(GConfig.GENERATION_HEIGHT);
+				int x2 = r.nextInt(GConfig.MAP_WIDTH);
+				int y2 = r.nextInt(GConfig.GENERATION_HEIGHT);
+				
+				if(initialMap[y1][x1] == nothing || initialMap[y2][x2] == nothing) {
+					lottery--;
+					continue;
+				}
+					
+				Array<Vector2> path = null;
+				try {
+					path = getPathGeneration(new Vector2(x1, y1), new Vector2(x2, y2));
+					
+					for(int i = 0; i < (path.size > 5 ? 5 : path.size); i++) {
+						Vector2 v = path.get(i);
+						Array<Vector2> path2 = randomPoints(new Vector2(v.x, v.y), 3);
+						for(Vector2 v2 : path2)
+							initialMap[(int) v2.y][(int) v2.x] = iron;
+					}
+				}
+				catch(Exception e) {
+					System.err.println("Path went wrong with: " + x1 + ", " + y1 + " -> " + x2 + ", " + y2);
+					e.printStackTrace();
+					lottery--;
+					continue;
+				}
+				
+				//System.out.println("path of iron");
+				amountPathIron++;
+			}
+			else if(a < 40) {
+				//System.out.println("empty spaces");
+				int x1 = r.nextInt(GConfig.MAP_WIDTH);
+				int y1 = r.nextInt(GConfig.GENERATION_HEIGHT);
+				Array<Vector2> path = randomPoints(new Vector2(x1, y1), 5);
+				for(Vector2 v : path)
+					initialMap[(int) v.y][(int) v.x] = nothing;
+			}
+			else if(a < 70) {
+				//System.out.println("gold");
+				int x1 = r.nextInt(GConfig.MAP_WIDTH);
+				int y1 = r.nextInt(GConfig.GENERATION_HEIGHT);
+				if(initialMap[y1][x1] == nothing) {
+					lottery--;
+					continue;
+				}
+				initialMap[y1][x1] = gold;
+			}
+			else {
+				//System.out.println("wasted luck");
+			}
+		}
+		
+		int amountIron = 0, amountDirt = 0, amountGold = 0;
+		//passa a limpo
+		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
+			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
+				GObject object = null, object2 = null;
+				if(initialMap[i][j] == dirt) {
+					if(r.nextInt(100) < 80) {
+						amountDirt++;
+						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
+					}
+					if(r.nextInt(100) < 5) {
+						amountGold++;
+						object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/boxCoin.png", j*70, i*70, false);
+					}
+					else {
+						amountDirt++;
+						object2 = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70, false);
+					}
+				}
+				else if(initialMap[i][j] == gold) {
+					if(r.nextInt(100) < 80) {
+						amountDirt++;
+						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
+					}
+					amountGold++;
+					object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/boxCoin.png", j*70, i*70, false);
+				}
+				else if(initialMap[i][j] == iron) {
+					if(r.nextInt(100) < 80) {
+						amountIron++;
+						object = GObjectFactory.getInstance().newStaticObject(world, "tiles/castleCenter.png", j*70, i*70);
+					}
+					else if(r.nextInt(100) < 90) {
+						amountDirt++;
+						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
+					}
+					amountIron++;
+					object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/castleCenter.png", j*70, i*70, false);
+				}
+				
+				if(object != null)
+					insertElement(object, j, i, true);
+				if(object2 != null)
+					insertElement(object2, j, i, false);
+			}
+		}
+		System.out.println("Iron (" + amountIron + "), Gold (" + amountGold + "), Dirt (" + amountDirt + ")");
+	}
+	
+	public void generateMapV1() {
 		int amountPathIron = 0;
 		
 		int[][] initialMap = new int[GConfig.GENERATION_HEIGHT][];
@@ -191,8 +338,6 @@ public class GMap {
 				initialMap[i][j] = dirt;
 			}
 		}
-		
-		//initialMap[1][1] = dirt;
 		
 		for(int lottery = 1; lottery <= GConfig.GENERATION_TRIES; lottery++) {
 			int a = r.nextInt(100);
@@ -231,7 +376,7 @@ public class GMap {
 			}
 		}
 			
-		//passa a limpo
+		//clean up
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
 			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
 				GObject object = null, object2 = null;
