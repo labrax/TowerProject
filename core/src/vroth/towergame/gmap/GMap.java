@@ -21,12 +21,13 @@ import vroth.towergame.gobject.GTile;
  *
  */
 public class GMap {
+	public static final int iron = GConfig.iron, gold = GConfig.gold, nothing = GConfig.nothing, dirt = GConfig.dirt;
 	private ArrayList<GMapLine> mapLines = null;
 	private Random r = new Random();
-	private World world;
+	private GObjectFactory factory;
 	
 	public GMap(World world) {
-		this.world = world;
+		factory = GObjectFactory.getInstance(world);
 		mapLines = new ArrayList<GMapLine>();
 		generateMapV2();
 	}
@@ -35,7 +36,29 @@ public class GMap {
 		return mapLines.size();
 	}
 	
-	public Sprite getElement(float stateTime, int x, int y, boolean foreground) {
+	public GObject getObject(Vector2 position) {
+		if(mapLines.size() <= (int) position.y)
+			return null;
+		
+		GObject object = mapLines.get((int) position.y).getObjectForeground((int) position.x);
+		if(object == null)
+			object = mapLines.get((int) position.y).getObjectBackground((int) position.x);
+		return object;
+	}
+	
+	public void destroyObject(Vector2 position) {
+		if(mapLines.size() <= (int) position.y)
+			return;
+		
+		GObject object = mapLines.get((int) position.y).getObjectForeground((int) position.x);
+		if(object != null) {
+			mapLines.get((int) position.y).setObjectForeground((int) position.x, null);
+			return;
+		}
+		mapLines.get((int) position.y).setObjectBackground((int) position.x, null);
+	}
+	
+	public Sprite getSprite(float stateTime, int x, int y, boolean foreground) {
 		boolean top = false, down = false, left = false, right = false;
 		if(mapLines.size() <= y)
 			return null;
@@ -178,9 +201,6 @@ public class GMap {
 		return path;
 	}
 	
-	int iron = 0x10, gold = 0x11;
-	int nothing = 0x0, dirt = 0x1;
-	
 	public void generateMapV2() {
 		int amountPathIron = 0;
 		
@@ -283,40 +303,41 @@ public class GMap {
 		//passa a limpo
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
 			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
+				Vector2 position = new Vector2(j*GConfig.TILE_SPACING, i*GConfig.TILE_SPACING);
 				GObject object = null, object2 = null;
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80) {
 						amountDirt++;
-						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
+						object = factory.newDirt(position, false);
 					}
 					if(r.nextInt(100) < 5) {
 						amountGold++;
-						object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/boxCoin.png", j*70, i*70, false);
+						object2 = factory.newCoinBox(position, true);
 					}
 					else {
 						amountDirt++;
-						object2 = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70, false);
+						object2 = factory.newDirt(position, true);
 					}
 				}
 				else if(initialMap[i][j] == gold) {
 					if(r.nextInt(100) < 80) {
 						amountDirt++;
-						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
+						object = factory.newDirt(position, false);
 					}
 					amountGold++;
-					object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/boxCoin.png", j*70, i*70, false);
+					object2 = factory.newCoinBox(position, true);
 				}
 				else if(initialMap[i][j] == iron) {
 					if(r.nextInt(100) < 80) {
 						amountIron++;
-						object = GObjectFactory.getInstance().newStaticObject(world, "tiles/castleCenter.png", j*70, i*70);
+						object = factory.newIron(position, false);
 					}
 					else if(r.nextInt(100) < 90) {
 						amountDirt++;
-						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
+						object = factory.newDirt(position, false);
 					}
 					amountIron++;
-					object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/castleCenter.png", j*70, i*70, false);
+					object2 = factory.newIron(position, true);
 				}
 				
 				if(object != null)
@@ -379,23 +400,24 @@ public class GMap {
 		//clean up
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
 			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
+				Vector2 position = new Vector2(j*GConfig.TILE_SPACING, i*GConfig.TILE_SPACING);
 				GObject object = null, object2 = null;
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80)
-						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
-					object2 = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70, false);
+						object = factory.newDirt(position, false);
+					object2 = factory.newDirt(position, true);
 				}
 				else if(initialMap[i][j] == gold) {
 					if(r.nextInt(100) < 80)
-						object = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70);
-					object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/boxCoin.png", j*70, i*70, false);
+						object = factory.newDirt(position, false);
+					object2 = factory.newCoinBox(position, true);
 				}
 				else if(initialMap[i][j] == iron) {
-					object = GObjectFactory.getInstance().newStaticObject(world, "tiles/castleCenter.png", j*70, i*70);
-					object2 = GObjectFactory.getInstance().newStaticObject(world, "tiles/castleCenter.png", j*70, i*70, false);
+					object = factory.newIron(position, false);
+					object2 = factory.newIron(position, true);
 				}
 				else {
-					object2 = GObjectFactory.getInstance().newTile(world, "tiles/grass", j*70, i*70, false);
+					object2 = factory.newDirt(position, true);
 				}
 				
 				if(object != null)

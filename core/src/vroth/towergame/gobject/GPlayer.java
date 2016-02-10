@@ -23,7 +23,7 @@ public class GPlayer extends GObject {
 	Animation walk, swim, climb;
 	
 	protected GPlayer(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Sprite badge1, Sprite badge2, Vector2 dimension) {
-		super(fixture, body, front, dimension);
+		super(fixture, body, front, dimension, 100);
 		isDucking = false;
 		isHurt = false;
 		goRight = true;
@@ -207,9 +207,9 @@ public class GPlayer extends GObject {
 				else if(equalZero(velocity.y) && equalZero(velocity.x))
 					setState(stateTime, STATE.STOP);
 				else {
-					if(keyLeft/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
+					if(keyLeft && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME)
 						movePlayer(new Vector2((body.getLinearVelocity().x < -GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : -GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
-					else if(keyRight/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
+					else if(keyRight && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME)
 						movePlayer(new Vector2((body.getLinearVelocity().x > GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
 					if(keyUp) {
 						body.applyLinearImpulse(new Vector2(0, GConfig.SPEED_UP), new Vector2(body.getPosition().x, body.getPosition().y), true);
@@ -223,9 +223,9 @@ public class GPlayer extends GObject {
 					applyHurt();
 				else if(equalZero(velocity.y) || lessThanZero(velocity.y))
 					setState(stateTime, STATE.FALL);
-				else if(keyLeft/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
+				else if(keyLeft && stateTime - this.stateTime > 5*GConfig.ANIMATION_FRAME_TIME)
 					movePlayer(new Vector2((body.getLinearVelocity().x < -GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : -GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
-				else if(keyRight/* && stateTime - this.stateTime > 3*GConfig.ANIMATION_FRAME_TIME*/)
+				else if(keyRight && stateTime - this.stateTime > 5*GConfig.ANIMATION_FRAME_TIME)
 					movePlayer(new Vector2((body.getLinearVelocity().x > GConfig.SPEED_WALK/2 ? body.getLinearVelocity().x : GConfig.SPEED_WALK/2), body.getLinearVelocity().y));
 				break;
 			case STOP:
