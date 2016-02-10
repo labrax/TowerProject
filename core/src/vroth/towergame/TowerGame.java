@@ -12,6 +12,7 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	OrthographicCamera camera;
 	Box2DDebugRenderer debugRenderer;
 	
+	GTitleScreen introScreen = null;
 	GPlayScreen playScreen = null;
 	IScreen currScreen;
 	

@@ -31,7 +31,6 @@ public class GMap {
 	public GMap(World world) {
 		factory = GObjectFactory.getInstance(world);
 		mapLines = new ArrayList<GMapLine>();
-		generateMapV2();
 	}
 	
 	public int size() {
