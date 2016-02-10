@@ -5,7 +5,9 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Random;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
@@ -34,6 +36,55 @@ public class GMap {
 	
 	public int size() {
 		return mapLines.size();
+	}
+	
+	public boolean isVisible(Vector2 reference, Vector2 position, Vector2 size) {
+		boolean x = false, y = false;
+		if(position.y - reference.y < GConfig.SCREEN_HEIGHT/2)
+			y = true;
+		if(position.x - reference.x < GConfig.SCREEN_WIDTH/2)
+			x = true;
+		if(reference.y - position.y+size.y > GConfig.SCREEN_HEIGHT/2)
+			y = true;
+		if(reference.x - position.x+size.x > GConfig.SCREEN_WIDTH/2)
+			x = true;
+		
+		if(x == true && y == true)
+			return true;
+		else
+			return false;
+	}
+	
+	public void render(SpriteBatch batch, float stateTime, Vector2 refPosition, Vector2 drawReference) {
+		for(int i = 0; i < size(); i++) {
+			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
+				GObject b = getMapLine(i).getObjectBackground(j);
+				Sprite toDraw = getSprite(stateTime, j, i, false);
+				if(b != null && toDraw != null && isVisible(refPosition, b.getBody().getPosition(), b.getDimension())) {
+					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+					Color c = batch.getColor();
+					batch.setColor(new Color(0.6f, 0.2f, 0f, 0.7f));
+					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+					batch.setColor(c);
+				}
+				
+				toDraw = getSprite(stateTime, j, i, true);
+				GObject o = getMapLine(i).getObjectForeground(j);
+				if(o != null && toDraw != null && isVisible(refPosition, o.getBody().getPosition(), o.getDimension())) {
+					batch.draw(toDraw, o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
+				}
+			}
+		}
+	}
+	
+	public void insertElement(GObject object, int x, int y, boolean foreground) {
+		while(y+1 > mapLines.size()) {
+			mapLines.add(new GMapLine());
+		}
+		if(foreground)
+			mapLines.get(y).setObjectForeground(x, object);
+		else
+			mapLines.get(y).setObjectBackground(x, object);
 	}
 	
 	public GObject getObject(Vector2 position) {
@@ -106,16 +157,6 @@ public class GMap {
 			return tile.getSprite(top, down, left, right);
 		}
 		return object.getSprite(stateTime);
-	}
-	
-	public void insertElement(GObject object, int x, int y, boolean foreground) {
-		while(y+1 > mapLines.size()) {
-			mapLines.add(new GMapLine());
-		}
-		if(foreground)
-			mapLines.get(y).setObjectForeground(x, object);
-		else
-			mapLines.get(y).setObjectBackground(x, object);
 	}
 
 	public Array<Vector2> getPath(Vector2 origin, Vector2 target) {

@@ -3,6 +3,7 @@ package vroth.towergame.gobject;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
@@ -42,6 +43,10 @@ public class GPlayer extends GObject {
 		keyLeft = false;
 		keyRight = false;
 		keyDown = false;
+	}
+	
+	public void render(SpriteBatch batch, float stateTime, Vector2 drawReference) {
+		batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
 	}
 
 	public Sprite getSpriteAux(float stateTime) {

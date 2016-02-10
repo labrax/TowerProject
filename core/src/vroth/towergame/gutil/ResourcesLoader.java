@@ -35,7 +35,7 @@ public class ResourcesLoader {
 	
 	private Sprite loadSpriteFile(String file) {
 		try {
-			Texture t = new Texture(file);
+			Texture t = new Texture("assets/" + file);
 			return new Sprite(t);
 		}
 		catch(Exception e) {

@@ -2,10 +2,8 @@ package vroth.towergame;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
@@ -63,23 +61,6 @@ public class GPlayScreen implements IScreen {
 		gameObjects.add(tile);*/
 	}
 	
-	private boolean isVisible(Vector2 reference, Vector2 position, Vector2 size) {
-		boolean x = false, y = false;
-		if(position.y - reference.y < GConfig.SCREEN_HEIGHT/2)
-			y = true;
-		if(position.x - reference.x < GConfig.SCREEN_WIDTH/2)
-			x = true;
-		if(reference.y - position.y+size.y > GConfig.SCREEN_HEIGHT/2)
-			y = true;
-		if(reference.x - position.x+size.x > GConfig.SCREEN_WIDTH/2)
-			x = true;
-		
-		if(x == true && y == true)
-			return true;
-		else
-			return false;
-	}
-	
 	public void update(float deltaTime) {
 		world.step(deltaTime, 6, 2);
 		stateTime += deltaTime;
@@ -122,36 +103,21 @@ public class GPlayScreen implements IScreen {
 		camera.position.set(refPosition, 0);
 		
 		batch.begin();
-		for(int i = 0; i < gameMap.size(); i++) {
-			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
-				GObject b = gameMap.getMapLine(i).getObjectBackground(j);
-				Sprite toDraw = gameMap.getSprite(stateTime, j, i, false);
-				if(b != null && toDraw != null && isVisible(refPosition, b.getBody().getPosition(), b.getDimension())) {
-					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
-					Color c = batch.getColor();
-					batch.setColor(new Color(0.6f, 0.2f, 0f, 0.7f));
-					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
-					batch.setColor(c);
-				}
-				
-				toDraw = gameMap.getSprite(stateTime, j, i, true);
-				GObject o = gameMap.getMapLine(i).getObjectForeground(j);
-				if(o != null && toDraw != null && isVisible(refPosition, o.getBody().getPosition(), o.getDimension())) {
-					batch.draw(toDraw, o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
-				}
-			}
-		}
+		//render the map
+		gameMap.render(batch, stateTime, refPosition, drawReference);
 		
+		//render the objects
 		for(GObject o: gameObjects) {
 			/*batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x, o.getBody().getPosition().y, 
 					o.getSprite(stateTime).getWidth(), o.getSprite(stateTime).getHeight(), 
 					o.getSprite(stateTime).getScaleX(), o.getSprite(stateTime).getScaleY(), 
 					o.getSprite(stateTime).getRotation());*/
-			if(isVisible(refPosition, o.getBody().getPosition(), o.getDimension()))
+			if(gameMap.isVisible(refPosition, o.getBody().getPosition(), o.getDimension()))
 				batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
 		}
 
-		batch.draw(player.getSprite(stateTime), player.getBody().getPosition().x + drawReference.x, player.getBody().getPosition().y + drawReference.y);
+		//render the player
+		player.render(batch, stateTime, drawReference);
 		batch.end();
 
 		if(GConfig.DEBUG_PHYSICS)

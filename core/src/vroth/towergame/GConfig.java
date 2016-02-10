@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 public class GConfig {
 	public static String GAME_NAME = "TowerProject";
 	
-	public static int MAP_WIDTH = 100, INITIAL_HEIGHT = 20;
+	public static int MAP_WIDTH = 100;
 
 	public static int GENERATION_HEIGHT = 30, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35, TILE_SPACING = 70;
 	public static final int iron = 0x10, gold = 0x11, nothing = 0x0, dirt = 0x1;
