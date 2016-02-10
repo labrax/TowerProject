@@ -23,7 +23,8 @@ public class GConfig {
 	public static float PLAYER_DENSITY = 50000f;
 	public static float PLAYER_FRICTION = 50f;
 	
-	public static final boolean DEBUG_CONTROLS = true;
+	public static boolean DEBUG_PHYSICS = false;
+	public static boolean DEBUG_CONTROLS = false;
 	
 	//collision tests
 	public static final short CATEGORY_FTILE = 0x0001,

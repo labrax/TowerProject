@@ -31,8 +31,7 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	OrthographicCamera camera;
 	Matrix4 debugMatrix;
 	
-	int refX = 0;
-	int refY = 0;
+	float refX, refY;
 	
 	private float stateTime;
 
@@ -157,7 +156,8 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		//Box2DDebugRenderer.setAxis(new Vector2(player.getBody().getPosition().x + drawReference.x, player.getBody().getPosition().y + drawReference.y));
 		//debugRenderer.render(world, batch.getProjectionMatrix());
 		
-		debugRenderer.render(world, camera.combined);
+		if(GConfig.DEBUG_PHYSICS)
+			debugRenderer.render(world, camera.combined);
 	}
 	
 	public void resize (int width, int height) {
@@ -180,8 +180,17 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		world.dispose();
 	}
 
-	@Override
 	public boolean keyDown(int keycode) {
+		if(keycode == Input.Keys.F12)
+			GConfig.DEBUG_PHYSICS = !GConfig.DEBUG_PHYSICS;
+		if(keycode == Input.Keys.F11) {
+			if(!GConfig.DEBUG_CONTROLS) {
+				refX = player.getBody().getPosition().x;
+				refY = player.getBody().getPosition().y;
+			}
+			GConfig.DEBUG_CONTROLS = !GConfig.DEBUG_CONTROLS;
+		}
+		
 		if(GConfig.DEBUG_CONTROLS) {
 			if(keycode == Input.Keys.DOWN)
 				refY -= 100;
