@@ -7,7 +7,7 @@ public class GConfig {
 	
 	public static int MAP_WIDTH = 100, INITIAL_HEIGHT = 20;
 
-	public static int GENERATION_HEIGHT = 30, GENERATION_TRIES = 150, MAX_AMOUNT_IRON = 80;
+	public static int GENERATION_HEIGHT = 30, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35;
 	
 	public static int SCREEN_HEIGHT, SCREEN_WIDTH;
 	
@@ -22,6 +22,8 @@ public class GConfig {
 	public static float EPSILON = 0.05f;
 	public static float PLAYER_DENSITY = 50000f;
 	public static float PLAYER_FRICTION = 50f;
+	
+	public static final boolean DEBUG_CONTROLS = true;
 	
 	//collision tests
 	public static final short CATEGORY_FTILE = 0x0001,

@@ -31,6 +31,9 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	OrthographicCamera camera;
 	Matrix4 debugMatrix;
 	
+	int refX = 0;
+	int refY = 0;
+	
 	private float stateTime;
 
 	private Array<GObject> gameObjects = null;
@@ -102,7 +105,11 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		//batch.setProjectionMatrix(camera.combined);
 		//debugMatrix = batch.getProjectionMatrix().cpy();
 		
-		Vector2 refPosition = player.getBody().getPosition();
+		Vector2 refPosition;
+		if(GConfig.DEBUG_CONTROLS)
+			refPosition = new Vector2(refX, refY);
+		else
+			refPosition = player.getBody().getPosition();
 		refPosition.x += player.getDimension().x/2;
 		refPosition.y += player.getDimension().y/2;
 		
@@ -175,6 +182,17 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
+		if(GConfig.DEBUG_CONTROLS) {
+			if(keycode == Input.Keys.DOWN)
+				refY -= 100;
+			if(keycode == Input.Keys.UP)
+				refY += 100;
+			if(keycode == Input.Keys.LEFT)
+				refX -= 100;
+			if(keycode == Input.Keys.RIGHT)
+				refX += 100;
+			return true;
+		}
 		return player.keyDown(keycode);
 	}
 
