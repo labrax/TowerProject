@@ -5,9 +5,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.World;
 
 public class TowerGame extends ApplicationAdapter implements InputProcessor {
+	World world;
 	SpriteBatch batch;
 	OrthographicCamera camera;
 	Box2DDebugRenderer debugRenderer;
@@ -15,6 +18,8 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	GTitleScreen introScreen = null;
 	GPlayScreen playScreen = null;
 	IScreen currScreen;
+	
+	private boolean endTitle = false;
 	
 	public void create() {
 		//Gdx.graphics.setWindowedMode(800, 600);
@@ -25,17 +30,29 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		camera = new OrthographicCamera(GConfig.SCREEN_WIDTH, GConfig.SCREEN_HEIGHT);
 		debugRenderer = new Box2DDebugRenderer();
 		
-		playScreen = new GPlayScreen(camera, batch, debugRenderer);
-		currScreen = playScreen;
+		introScreen = new GTitleScreen(this);
+		currScreen = introScreen;
 		
-		currScreen.create();
+		world = new World(new Vector2(0, -98f), true);
+		
+		currScreen.create(world);
 		Gdx.input.setInputProcessor(this);
 	}
 	
 	public void render() {
+		if(endTitle) {
+			endTitle = false;
+			
+			currScreen.dispose();
+			introScreen = null;
+			
+			playScreen = new GPlayScreen();
+			playScreen.create(world);
+			currScreen = playScreen;
+		}
 		currScreen.update(Gdx.graphics.getDeltaTime());
 		camera.update();
-		currScreen.render();
+		currScreen.render(camera, debugRenderer, batch);
 	}
 	
 	public void resize (int width, int height) {
@@ -51,6 +68,10 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	
 	public void resume() {
 		
+	}
+	
+	public void endTitleScreen() {
+		endTitle = true;
 	}
 	
 	public void dispose() {

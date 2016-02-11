@@ -46,11 +46,11 @@ public class GPlayer extends GObject {
 	}
 	
 	public void render(SpriteBatch batch, float stateTime, Vector2 drawReference) {
+		//System.out.println(currState);
 		batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
 	}
 
 	public Sprite getSpriteAux(float stateTime) {
-		//System.out.println("printing: " + currState);
 		switch(currState) {
 			case DUCK:
 				return duck;
@@ -72,7 +72,6 @@ public class GPlayer extends GObject {
 	}
 	
 	public Sprite getSprite(float stateTime) {
-		//System.out.println(currState + " " + body.getLinearVelocity().x + ", " + body.getLinearVelocity().y);
 		Sprite willReturn = getSpriteAux(stateTime);
 		
 		if(willReturn == null) {
@@ -91,7 +90,6 @@ public class GPlayer extends GObject {
 	}
 	
 	public boolean keyDown(int keycode) {
-		//System.out.println("keydown: " + keycode);
 		switch (keycode) {
 			case Input.Keys.LEFT:
 				keyLeft = true;
@@ -114,7 +112,6 @@ public class GPlayer extends GObject {
 	}
 	
 	public boolean keyUp(int keycode) {
-		//System.out.println("keyup: " + keycode);
 		switch (keycode) {
 			case Input.Keys.LEFT:
 				keyLeft = false;
@@ -140,12 +137,15 @@ public class GPlayer extends GObject {
 	}
 	
 	private void movePlayer(Vector2 velocity) {
-		//System.out.println("Setting " + velocity + " (" + body.getLinearVelocity() + ")");
 		body.setLinearVelocity(velocity);
 	}
 	
 	public void hurt() {
 		isHurt = true;
+	}
+	
+	public void changeDirection() {
+		goRight = !goRight;
 	}
 	
 	public void setState(float stateTime, STATE newState) {
@@ -247,13 +247,15 @@ public class GPlayer extends GObject {
 					setState(stateTime, STATE.JUMP);
 				else if(isDucking)
 					setState(stateTime, STATE.DUCK);
-				else if(keyLeft)
-					body.applyForceToCenter(new Vector2(body.getLinearVelocity().x > -GConfig.SPEED_WALK ? -GConfig.SPEED_WALK * deltaTime : 0, 0), true);
-				else if(keyRight)
-					body.applyForceToCenter(new Vector2(body.getLinearVelocity().x < GConfig.SPEED_WALK ? GConfig.SPEED_WALK * deltaTime : 0, 0), true);
-				if(keyUp) {
-					body.applyForceToCenter(new Vector2(0, GConfig.FORCE_UP), true);
+				else {
+					if(keyLeft)
+						body.applyForceToCenter(new Vector2(body.getLinearVelocity().x > -GConfig.SPEED_WALK ? -GConfig.SPEED_WALK * deltaTime : 0, 0), true);
+					else if(keyRight)
+						body.applyForceToCenter(new Vector2(body.getLinearVelocity().x < GConfig.SPEED_WALK ? GConfig.SPEED_WALK * deltaTime : 0, 0), true);
+					if(keyUp) {
+						body.applyForceToCenter(new Vector2(0, GConfig.FORCE_UP), true);
 					//keyUp = false;
+					}
 				}
 				break;
 			case WALK:

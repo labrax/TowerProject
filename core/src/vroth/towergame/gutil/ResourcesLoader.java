@@ -2,9 +2,11 @@ package vroth.towergame.gutil;
 
 import java.util.HashMap;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class ResourcesLoader {
@@ -44,14 +46,11 @@ public class ResourcesLoader {
 		}
 	}
 	
-	//TODO: create a cache?
 	public Sprite loadSprite(String file) {
 		if(cache.containsKey(file)) {
-			//System.out.println("cache: " + file);
 			return cache.get(file);
 		}
 		else {
-			//System.out.println("not cache: " + file);
 			Sprite loaded = loadSpriteFile(file);
 			cache.put(file, loaded);
 			return loaded;
@@ -60,5 +59,17 @@ public class ResourcesLoader {
 	
 	public Sprite getErrSprite() {
 		return errSprite;
+	}
+	
+	public BitmapFont getFont(String file) {
+		BitmapFont font;
+		try {
+			font = new BitmapFont(Gdx.files.internal(file));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			font = new BitmapFont();
+		}
+		return font;
 	}
 }

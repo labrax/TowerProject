@@ -77,7 +77,7 @@ public class GMap {
 	}
 	
 	public void insertElement(GObject object, int x, int y, boolean foreground) {
-		while(y+1 > mapLines.size()) {
+		while(y >= mapLines.size()) {
 			mapLines.add(new GMapLine());
 		}
 		if(foreground)
@@ -110,7 +110,7 @@ public class GMap {
 	
 	public Sprite getSprite(float stateTime, int x, int y, boolean foreground) {
 		boolean top = false, down = false, left = false, right = false;
-		if(mapLines.size() <= y)
+		if(y >= mapLines.size())
 			return null;
 
 		GObject object;
