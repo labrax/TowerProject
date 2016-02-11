@@ -84,7 +84,7 @@ public class GPlayScreen implements IScreen {
 			}
 		}
 		
-		player.update(stateTime);
+		player.update(stateTime, deltaTime);
 		
 		if(GConfig.DEBUG_CONTROLS)
 			refPosition = new Vector2(refX, refY);

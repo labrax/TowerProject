@@ -20,11 +20,11 @@ public class GConfig {
 	
 	public static float HURT_TIME = 0.8f;
 	public static float ANIMATION_FRAME_TIME = 0.1f;
-	public static float SPEED_UP = 10000f;
-	public static float SPEED_WALK = 500f;
+	public static float FORCE_UP = (float) Math.pow(10, 30);
+	public static float SPEED_WALK = (float) Math.pow(10, 14);
 	public static float EPSILON = 0.05f;
-	public static float PLAYER_DENSITY = 50000f;
-	public static float PLAYER_FRICTION = 50f;
+	public static float PLAYER_DENSITY = 500000f;
+	public static float PLAYER_FRICTION = 30f;
 	
 	public static boolean DEBUG_PHYSICS = false;
 	public static boolean DEBUG_CONTROLS = false;
