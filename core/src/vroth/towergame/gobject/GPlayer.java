@@ -149,10 +149,10 @@ public class GPlayer extends GObject {
 	}
 	
 	public void setState(float stateTime, STATE newState) {
-		if(newState != currState) {
+		/*if(newState != currState) {
 			System.out.println(currState + " -> " + newState + " (" + this.stateTime + ")");
 			System.out.println(body.getLinearVelocity());
-		}
+		}*/
 		this.stateTime = stateTime;
 		this.currState = newState;
 	}
