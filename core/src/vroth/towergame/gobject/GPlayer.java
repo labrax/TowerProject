@@ -19,24 +19,27 @@ import vroth.towergame.gutil.GDatabase;
 import vroth.towergame.gutil.GResourcesLoader;
 
 public class GPlayer extends GObject {
+	private Sprite duck, front, hurt, jump, stand, badge1, badge2;
+	private Animation walk, swim, climb;
+	private boolean goRight;
+	
 	public enum STATE {STOP, WALK, JUMP, FALL, DUCK, DAMAGE};
-	public STATE currState = STATE.STOP;
-	float stateTime;
-	boolean isDucking, isHurt;
+	private STATE currState = STATE.STOP;
+	private float stateTime;
+	private boolean isDucking, isHurt;
 	
-	boolean keyUp, keyLeft, keyRight, keyDown;
-	
-	boolean goRight;
-	Sprite duck, front, hurt, jump, stand, badge1, badge2;
-	Animation walk, swim, climb;
+	private boolean keyUp, keyLeft, keyRight, keyDown;
 	
 	private HashMap<Integer, Integer> items;
 	
 	private BitmapFont itemFont;
 	private GlyphLayout itemLayout;
 	
+	private int amountJump;
+	
+	
 	protected GPlayer(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Sprite badge1, Sprite badge2, Vector2 dimension) {
-		super(fixture, body, front, dimension, 100);
+		super(fixture, body, front, dimension, GConfig.PLAYER_HEALTH, GConfig.PLAYER_HEALTH);
 		isDucking = false;
 		isHurt = false;
 		goRight = true;
@@ -58,7 +61,7 @@ public class GPlayer extends GObject {
 		
 		items = new HashMap<Integer, Integer>();
 		
-		itemFont = GResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
+		itemFont = GResourcesLoader.getResourcesLoader().getFont("kenpixel_blocks.fnt");
 		itemFont.getData().setScale(0.1f);
 		itemFont.setColor(new Color(0, 0, 0, 1));
 	}
@@ -71,13 +74,10 @@ public class GPlayer extends GObject {
 		//draw resources
 		int amountDraw = 0;
 		GDatabase gDatabase = GDatabase.getInstance();
-		//GObjectFactory factory = GObjectFactory.getInstance(null);
-		Vector2 basePosition = new Vector2(9*GConfig.SCREEN_WIDTH/10, 2*GConfig.SCREEN_HEIGHT/3);
+		Vector2 basePosition = new Vector2(GConfig.SCREEN_WIDTH-50, 2*GConfig.SCREEN_HEIGHT/3);
 		for(Integer type : gDatabase.getItemsToFileRegister()) {
 			if(items.containsKey(type)) {
-				//System.out.println(type + ":" + items.get(type));
-				
-				Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getFileFromItem(type));
+				Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getItemToFile(type));
 				
 				batch.draw(texture, basePosition.x, basePosition.y - amountDraw*40, 19, texture.getWidth() > 19 ? 19*texture.getHeight()/texture.getWidth() : texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
 				
@@ -86,6 +86,32 @@ public class GPlayer extends GObject {
 				float itemFontX = basePosition.x;
 				float itemFontY = basePosition.y - amountDraw*40;
 				itemFont.draw(batch, itemLayout, itemFontX, itemFontY);
+				amountDraw++;
+			}
+		}
+		
+		if(GConfig.DRAW_PLAYER_HEALTH == true) {
+			amountDraw = 0;
+			basePosition = new Vector2(0, GConfig.SCREEN_HEIGHT-45);
+			int healthMarks = Math.ceil(health/5) > 0 ? (int) Math.ceil(health/5) : 0;
+			int maxMarks = (int) Math.ceil(maxHealth/5);
+			for(int i = 1; i <= healthMarks; i++) {
+				if(i+1 <= healthMarks) {
+					Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getElementToFile("heartFull"));
+					batch.draw(texture, basePosition.x + amountDraw*54, basePosition.y, texture.getWidth(), texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
+					i++;
+				}
+				else {
+					Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getElementToFile("heartHalf"));
+					batch.draw(texture, basePosition.x + amountDraw*54, basePosition.y, texture.getWidth(), texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
+					i++;
+				}
+				amountDraw++;
+			}
+			healthMarks++;
+			for(int i = healthMarks; i < maxMarks; i+=2) {
+				Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getElementToFile("heartEmpty"));
+				batch.draw(texture, basePosition.x + amountDraw*54, basePosition.y, texture.getWidth(), texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
 				amountDraw++;
 			}
 		}
@@ -183,6 +209,7 @@ public class GPlayer extends GObject {
 	
 	public void hurt() {
 		isHurt = true;
+		hit(5);
 	}
 	
 	public float hit(float damage) {
@@ -243,8 +270,10 @@ public class GPlayer extends GObject {
 		//change the state if the conditions are valid; otherwise make player movement
 		switch (currState) {
 			case DAMAGE:
-				if(equalZero(velocity.y))
-					setState(stateTime, STATE.STOP);
+				if(health > 0) {
+					if(equalZero(velocity.y))
+						setState(stateTime, STATE.STOP);
+				}
 				break;
 			case DUCK:
 				if(isHurt)
@@ -272,8 +301,9 @@ public class GPlayer extends GObject {
 						body.applyForceToCenter(new Vector2(body.getLinearVelocity().x > -GConfig.SPEED_WALK ? -GConfig.SPEED_WALK * deltaTime : 0, 0), true);
 					else if(keyRight)
 						body.applyForceToCenter(new Vector2(body.getLinearVelocity().x < GConfig.SPEED_WALK ? GConfig.SPEED_WALK * deltaTime : 0, 0), true);
-					if(keyUp) {
+					if(keyUp && amountJump > 0) {
 						body.applyForceToCenter(new Vector2(0, GConfig.FORCE_UP), true);
+						amountJump--;
 						//keyUp = false;
 					}
 				}
@@ -291,6 +321,7 @@ public class GPlayer extends GObject {
 				}
 				break;
 			case STOP:
+				amountJump = GConfig.MAX_JUMP;
 				if(isHurt)
 					applyHurt();
 				else if(lessThanZero(velocity.y))
@@ -313,6 +344,7 @@ public class GPlayer extends GObject {
 				}
 				break;
 			case WALK:
+				amountJump = GConfig.MAX_JUMP;
 				if(isHurt)
 					applyHurt();
 				else if(lessThanZero(velocity.y))

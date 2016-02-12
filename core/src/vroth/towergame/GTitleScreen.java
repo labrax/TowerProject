@@ -30,7 +30,7 @@ public class GTitleScreen implements IScreen {
 	private float stateTime = 0;
 	private Vector2 refPosition;
 	
-	private int bHeight, bWidth, bTries, bRealWidth;
+	private int bHeight, bWidth, bTries, bRealWidth, bAmountJump;
 	
 	private BitmapFont titleFont;
 	private float titleFontX, titleFontY;
@@ -46,12 +46,12 @@ public class GTitleScreen implements IScreen {
 	public GTitleScreen(TowerGame caller) {
 		this.caller = caller;
 		
-		titleFont = GResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
+		titleFont = GResourcesLoader.getResourcesLoader().getFont("kenpixel_blocks.fnt");
 		titleFont.getData().setScale(0.9f);
 		titleFont.setColor(new Color(0, 0, 0, 1));
 		titleLayout = new GlyphLayout(titleFont, GConfig.GAME_NAME);
 		
-		startFont = GResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
+		startFont = GResourcesLoader.getResourcesLoader().getFont("kenpixel_blocks.fnt");
 		startFont.getData().setScale(0.6f);
 	}
 	
@@ -73,11 +73,13 @@ public class GTitleScreen implements IScreen {
 		bWidth = GConfig.GENERATION_WIDTH;
 		bHeight = GConfig.GENERATION_HEIGHT;
 		bTries = GConfig.GENERATION_TRIES;
+		bAmountJump = GConfig.MAX_JUMP;
 		
 		GConfig.MAP_WIDTH = 70;
 		GConfig.GENERATION_HEIGHT = 10;
 		GConfig.GENERATION_WIDTH = 20;
 		GConfig.GENERATION_TRIES = 3;
+		GConfig.MAX_JUMP = 0;
 		map.generateMapV2();
 		
 		//2 tiles down
@@ -201,6 +203,8 @@ public class GTitleScreen implements IScreen {
 		GConfig.GENERATION_WIDTH = bWidth;
 		GConfig.GENERATION_HEIGHT = bHeight;
 		GConfig.GENERATION_TRIES = bTries;
+		GConfig.MAX_JUMP = bAmountJump;
+		GConfig.DRAW_PLAYER_HEALTH = true;
 	}
 
 }

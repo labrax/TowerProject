@@ -9,8 +9,11 @@ public class GDatabase {
 	private HashMap<Integer, String> itemsToFile;
 	private Array<Integer> itemsToFileRegister;
 	
+	private HashMap<String, String> elementToFile;
+	
 	private GDatabase() {
 		createItemToFile();
+		createElementToFile();
 	}
 	
 	public static GDatabase getInstance() {
@@ -34,11 +37,22 @@ public class GDatabase {
 		createItemToFileAux(0x22, "items/coinGold.png");
 	}
 	
-	public String getFileFromItem(Integer type) {
+	public void createElementToFile() {
+		elementToFile = new HashMap<String, String>();
+		elementToFile.put("heartFull", "hud/heartFull.png");
+		elementToFile.put("heartHalf", "hud/heartHalf.png");
+		elementToFile.put("heartEmpty", "hud/heartEmpty.png");
+	}
+	
+	public String getItemToFile(Integer type) {
 		return itemsToFile.get(type);
 	}
 	
 	public Array<Integer> getItemsToFileRegister() {
 		return itemsToFileRegister;
+	}
+	
+	public String getElementToFile(String name) {
+		return elementToFile.get(name);
 	}
 }

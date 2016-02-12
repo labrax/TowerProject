@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
@@ -75,6 +76,15 @@ public class GPlayScreen implements IScreen {
 					Array<GObject> newObjects = GObjectFactory.getInstance(world).newResource(objectType, new Vector2(object.getBody().getPosition().x + object.getDimension().x/2, object.getBody().getPosition().y + object.getDimension().y/2));
 					for(GObject o : newObjects)
 						gameObjects.add(o);
+					
+					//TODO: fix bug
+					/*Filter filter = object.fixture.getFilterData(); 
+					filter.categoryBits = GConfig.CATEGORY_BTILE;
+					filter.maskBits = GConfig.MASK_NO_TOUCH;
+					object.fixture.setFilterData(filter);
+					world.step(0, 0, 0);*/
+					
+					//player.getBody().applyForceToCenter(new Vector2(GConfig.SPEED_WALK*(object.getCenter().x-player.getCenter().x), GConfig.FORCE_UP*(object.getCenter().y-player.getCenter().y)), true);
 					world.destroyBody(object.getBody());
 					gameMap.destroyObject(pointerPosition);
 				}
@@ -83,7 +93,7 @@ public class GPlayScreen implements IScreen {
 		
 		//player bellow water line
 		if(player.getBody().getPosition().y < 0) {
-			player.hit(random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
+			player.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
 		}
 		player.update(stateTime, deltaTime);
 		
@@ -91,7 +101,7 @@ public class GPlayScreen implements IScreen {
 		for(GObject o : gameObjects) {
 			//object bellow water line
 			if(o.getBody().getPosition().y < 0) {
-				float hp = o.hit(random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
+				float hp = o.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
 				if(hp < 0) {
 					world.destroyBody(o.getBody());
 				}

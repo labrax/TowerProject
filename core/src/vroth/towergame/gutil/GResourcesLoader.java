@@ -9,6 +9,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
+import vroth.towergame.GConfig;
+
 public class GResourcesLoader {
 	private static GResourcesLoader instance = null;
 	
@@ -41,7 +43,7 @@ public class GResourcesLoader {
 	
 	private Sprite loadSpriteFile(String file) {
 		try {
-			Texture t = new Texture("assets/" + file);
+			Texture t = new Texture(GConfig.ASSET_PATH + file);
 			return new Sprite(t);
 		}
 		catch(Exception e) {
@@ -63,7 +65,7 @@ public class GResourcesLoader {
 	
 	private Texture loadTextureFile(String file) {
 		try {
-			Texture t = new Texture("assets/" + file);
+			Texture t = new Texture(GConfig.ASSET_PATH + file);
 			return t;
 		}
 		catch(Exception e) {
@@ -90,7 +92,7 @@ public class GResourcesLoader {
 	public BitmapFont getFont(String file) {
 		BitmapFont font;
 		try {
-			font = new BitmapFont(Gdx.files.internal(file));
+			font = new BitmapFont(Gdx.files.internal(GConfig.ASSET_PATH + file));
 		}
 		catch (Exception e) {
 			e.printStackTrace();

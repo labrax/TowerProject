@@ -119,7 +119,7 @@ public class GMap {
 			}
 		}
 				
-				//draw water
+		//draw water
 		for(int i = (int) range[0].y; i < (int) range[1].y; i++) {
 			for(int j = (int) range[0].x; j < (int) range[1].x; j++) {
 				if(i <= 0) {

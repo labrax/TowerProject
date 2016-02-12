@@ -12,16 +12,18 @@ public class GObject {
 	protected Body body;
 	protected Sprite staticSprite;
 	protected Vector2 dimension;
+	protected float maxHealth;
 	protected float health;
 	protected int type = 0;
 	protected float damage = GConfig.DAMAGE;
 	
-	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health) {
+	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health, float maxHealth) {
 		this.fixture = fixture;
 		this.body = body;
 		this.staticSprite = staticSprite;
 		this.dimension = dimension;
 		this.health = health;
+		this.maxHealth = maxHealth;
 	}
 	
 	public float getDamage() {
@@ -54,6 +56,5 @@ public class GObject {
 	
 	public Vector2 getCenter() {
 		return new Vector2(body.getPosition().x + dimension.x/2, body.getPosition().y + dimension.y/2);
-		
 	}
 }

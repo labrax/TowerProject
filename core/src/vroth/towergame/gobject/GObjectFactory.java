@@ -18,15 +18,18 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 import vroth.towergame.GConfig;
+import vroth.towergame.gutil.GDatabase;
 import vroth.towergame.gutil.GResourcesLoader;
 
 public class GObjectFactory {
 	//private static HashMap<Integer, GObject> itemsSamples;
-	private static GObjectFactory instance = null;
+	private static GObjectFactory instance = null; 
 	private World world;
+	private GDatabase gDatabase;
 	
 	private GObjectFactory(World world) {
 		this.world = world;
+		this.gDatabase = GDatabase.getInstance();
 		//createItemsSamples();
 	}
 	
@@ -157,10 +160,10 @@ public class GObjectFactory {
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GObject(fixture, body, staticSprite, dimension, health);
+		return new GObject(fixture, body, staticSprite, dimension, health, health);
 	}
 	
-	private GObject newItem(String file, Vector2 position) {
+	private GObject newItem(String file, Vector2 position, int health) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
 		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
@@ -174,7 +177,7 @@ public class GObjectFactory {
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GObject(fixture, body, staticSprite, dimension, 5);
+		return new GObject(fixture, body, staticSprite, dimension, health, health);
 	}
 	
 	private GObjectResource newSmallResource(String file, Vector2 position, Vector2 velocity) {
@@ -257,7 +260,7 @@ public class GObjectFactory {
 	}
 	
 	public GObject newBox(Vector2 position) {
-		return newItem("tiles/boxCoin.png", position);
+		return newItem("tiles/boxCoin.png", position, 5);
 	}
 	
 	public Array<GObject> newCoins(Vector2 basePosition) {
@@ -266,21 +269,18 @@ public class GObjectFactory {
 		int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN; 
 		for(int i = 0; i < resources; i++) {
 			int type;
-			String file;
 			switch(r.nextInt(3)) {
 				case 0:
-					file = "items/coinBronze.png";
 					type = 0x20;
 					break;
 				case 1:
-					file = "items/coinSilver.png";
 					type = 0x21;
 					break;
 				default:
-					file = "items/coinGold.png";
 					type = 0x22;
 					break;
 			}
+			String file = gDatabase.getItemToFile(type);
 			Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*5 : r.nextFloat()*-5, r.nextBoolean() ? r.nextFloat()*5 : r.nextFloat()*-5);
 			GObjectResource resource = newCoin(file, basePosition, velocity);
 			resource.setType(type);
@@ -292,18 +292,7 @@ public class GObjectFactory {
 	public Array<GObject> newResource(int type, Vector2 basePosition) {
 		if(type == GConfig.gold)
 			return newCoins(basePosition);
-		String file;
-		switch(type) {
-			case GConfig.iron:
-				file = "items/particleIron.png";
-				break;
-			case GConfig.dirt:
-				file = "items/particleDirt.png";
-				break;
-			default:
-				file = "err.png";
-				break;
-		}
+		String file = gDatabase.getItemToFile(type);
 		Random r = new Random();
 		Array<GObject> objects = new Array<GObject>();
 		int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN;

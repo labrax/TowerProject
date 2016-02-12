@@ -34,6 +34,7 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		currScreen = introScreen;
 		
 		world = new World(new Vector2(0, -98f), true);
+		//world.setAutoClearForces(true);
 		
 		currScreen.create(world);
 		Gdx.input.setInputProcessor(this);
