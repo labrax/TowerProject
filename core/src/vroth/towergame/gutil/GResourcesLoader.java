@@ -9,12 +9,15 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
-public class ResourcesLoader {
-	private HashMap<String, Sprite> cache = new HashMap<String, Sprite>();
-	private static ResourcesLoader instance = null;
-	private Sprite errSprite = null;
+public class GResourcesLoader {
+	private static GResourcesLoader instance = null;
 	
-	private ResourcesLoader() {
+	private HashMap<String, Sprite> cache = new HashMap<String, Sprite>();
+	private HashMap<String, Texture> textureCache = new HashMap<String, Texture>();
+	private Sprite errSprite = null;
+	private Texture errTexture = null; 
+	
+	private GResourcesLoader() {
 		Pixmap p = new Pixmap(64, 64, Pixmap.Format.RGBA8888);
 		Texture errTexture = new Texture(p);
 		p.setColor(Color.WHITE);
@@ -25,12 +28,13 @@ public class ResourcesLoader {
 		p.drawLine(0, 0, 63, 63);
 		p.drawLine(0, 63, 63, 0);
 		errTexture.draw(p, 0, 0);
+		this.errTexture = errTexture;
 		errSprite = new Sprite(errTexture);
 	}
 
-	public static ResourcesLoader getResourcesLoader() {
+	public static GResourcesLoader getResourcesLoader() {
 		if(instance == null)
-			instance = new ResourcesLoader();
+			instance = new GResourcesLoader();
 		return instance;
 	}
 	
@@ -53,6 +57,28 @@ public class ResourcesLoader {
 		else {
 			Sprite loaded = loadSpriteFile(file);
 			cache.put(file, loaded);
+			return loaded;
+		}
+	}
+	
+	private Texture loadTextureFile(String file) {
+		try {
+			Texture t = new Texture("assets/" + file);
+			return t;
+		}
+		catch(Exception e) {
+			System.err.println("Error loading file " + file);
+			return errTexture;
+		}
+	}
+	
+	public Texture loadTexture(String file) {
+		if(textureCache.containsKey(file)) {
+			return textureCache.get(file);
+		}
+		else {
+			Texture loaded = loadTextureFile(file);
+			textureCache.put(file, loaded);
 			return loaded;
 		}
 	}

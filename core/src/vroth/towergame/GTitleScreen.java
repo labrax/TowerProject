@@ -18,7 +18,7 @@ import vroth.towergame.gmap.GMap;
 import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GPlayer;
-import vroth.towergame.gutil.ResourcesLoader;
+import vroth.towergame.gutil.GResourcesLoader;
 
 public class GTitleScreen implements IScreen {
 	public static final int iron = GConfig.iron, gold = GConfig.gold, nothing = GConfig.nothing, dirt = GConfig.dirt;
@@ -46,12 +46,12 @@ public class GTitleScreen implements IScreen {
 	public GTitleScreen(TowerGame caller) {
 		this.caller = caller;
 		
-		titleFont = ResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
+		titleFont = GResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
 		titleFont.getData().setScale(0.9f);
 		titleFont.setColor(new Color(0, 0, 0, 1));
 		titleLayout = new GlyphLayout(titleFont, GConfig.GAME_NAME);
 		
-		startFont = ResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
+		startFont = GResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
 		startFont.getData().setScale(0.6f);
 	}
 	

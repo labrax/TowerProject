@@ -1,7 +1,13 @@
 package vroth.towergame.gobject;
 
+import java.util.HashMap;
+
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -9,7 +15,8 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
 
 import vroth.towergame.GConfig;
-import vroth.towergame.gutil.ResourcesLoader;
+import vroth.towergame.gutil.GDatabase;
+import vroth.towergame.gutil.GResourcesLoader;
 
 public class GPlayer extends GObject {
 	public enum STATE {STOP, WALK, JUMP, FALL, DUCK, DAMAGE};
@@ -22,6 +29,11 @@ public class GPlayer extends GObject {
 	boolean goRight;
 	Sprite duck, front, hurt, jump, stand, badge1, badge2;
 	Animation walk, swim, climb;
+	
+	private HashMap<Integer, Integer> items;
+	
+	private BitmapFont itemFont;
+	private GlyphLayout itemLayout;
 	
 	protected GPlayer(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Sprite badge1, Sprite badge2, Vector2 dimension) {
 		super(fixture, body, front, dimension, 100);
@@ -43,11 +55,40 @@ public class GPlayer extends GObject {
 		keyLeft = false;
 		keyRight = false;
 		keyDown = false;
+		
+		items = new HashMap<Integer, Integer>();
+		
+		itemFont = GResourcesLoader.getResourcesLoader().getFont("assets/kenpixel_blocks.fnt");
+		itemFont.getData().setScale(0.1f);
+		itemFont.setColor(new Color(0, 0, 0, 1));
 	}
 	
 	public void render(SpriteBatch batch, float stateTime, Vector2 drawReference) {
 		//System.out.println(currState);
+		//draw player
 		batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
+		
+		//draw resources
+		int amountDraw = 0;
+		GDatabase gDatabase = GDatabase.getInstance();
+		//GObjectFactory factory = GObjectFactory.getInstance(null);
+		Vector2 basePosition = new Vector2(9*GConfig.SCREEN_WIDTH/10, 2*GConfig.SCREEN_HEIGHT/3);
+		for(Integer type : gDatabase.getItemsToFileRegister()) {
+			if(items.containsKey(type)) {
+				//System.out.println(type + ":" + items.get(type));
+				
+				Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getFileFromItem(type));
+				
+				batch.draw(texture, basePosition.x, basePosition.y - amountDraw*40, 19, texture.getWidth() > 19 ? 19*texture.getHeight()/texture.getWidth() : texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
+				
+				itemLayout = new GlyphLayout(itemFont, new String("x " + items.get(type)));
+				
+				float itemFontX = basePosition.x;
+				float itemFontY = basePosition.y - amountDraw*40;
+				itemFont.draw(batch, itemLayout, itemFontX, itemFontY);
+				amountDraw++;
+			}
+		}
 	}
 
 	public Sprite getSpriteAux(float stateTime) {
@@ -76,7 +117,7 @@ public class GPlayer extends GObject {
 		
 		if(willReturn == null) {
 			System.out.println("is null with " + currState);
-			return ResourcesLoader.getResourcesLoader().getErrSprite();
+			return GResourcesLoader.getResourcesLoader().getErrSprite();
 		}
 		else {
 			willReturn = new Sprite(willReturn);
@@ -142,6 +183,19 @@ public class GPlayer extends GObject {
 	
 	public void hurt() {
 		isHurt = true;
+	}
+	
+	public float hit(float damage) {
+		isHurt = true;
+		return (this.health -= damage);
+	}
+	
+	public void addItem(int type) {
+		if(!items.containsKey(type))
+			items.put(type, 1);
+		else
+			items.put(type, items.get(type)+1);
+		//System.out.println(type + ":" + items.get(type));
 	}
 	
 	public void changeDirection() {

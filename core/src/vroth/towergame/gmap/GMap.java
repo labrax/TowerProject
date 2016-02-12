@@ -28,12 +28,15 @@ public class GMap {
 	private Random r = new Random();
 	private GObjectFactory factory;
 	
+	private GTile water;
+	
 	/**
 	 * Create the game map handler in a physical world
 	 * @param world is the physics world
 	 */
 	public GMap(World world) {
 		factory = GObjectFactory.getInstance(world);
+		water = factory.newWater();
 		mapLines = new ArrayList<GMapLine>();
 	}
 	
@@ -74,11 +77,11 @@ public class GMap {
 	 * @param reference
 	 * @return
 	 */
-	public Vector2[] rangeVisible(Vector2 reference) {
+	public Vector2[] rangeVisible(Vector2 refPosition) {
 		Vector2[] visible = new Vector2[2];
-		visible[0] = new Vector2((int) Math.floor(reference.x/GConfig.TILE_SPACING - (GConfig.SCREEN_HEIGHT+1)/GConfig.TILE_SPACING), (int) Math.ceil(reference.y/GConfig.TILE_SPACING - (GConfig.SCREEN_HEIGHT+1)/GConfig.TILE_SPACING));
-		visible[1] = new Vector2((int) Math.floor(reference.x/GConfig.TILE_SPACING + (GConfig.SCREEN_HEIGHT+1)/GConfig.TILE_SPACING), (int) Math.ceil(reference.y/GConfig.TILE_SPACING + (GConfig.SCREEN_HEIGHT+1)/GConfig.TILE_SPACING)); 
-		System.out.println(visible[0] + " " + visible[1]);
+		visible[0] = new Vector2((int) Math.floor(refPosition.x/GConfig.TILE_SPACING - GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING - 1), (int) Math.ceil(refPosition.y/GConfig.TILE_SPACING - GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING - 1));
+		visible[1] = new Vector2((int) Math.floor(refPosition.x/GConfig.TILE_SPACING + GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING + 1), (int) Math.ceil(refPosition.y/GConfig.TILE_SPACING + GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING + 1)); 
+		//System.out.println(visible[0] + " " + visible[1]);
 		return visible;
 	}
 	
@@ -90,22 +93,41 @@ public class GMap {
 	 * @param drawReference is the drawing reference for the screen size
 	 */
 	public void render(SpriteBatch batch, float stateTime, Vector2 refPosition, Vector2 drawReference) {
-		for(int i = 0; i < getHeight(); i++) {
-			for(int j = 0; j < GConfig.MAP_WIDTH; j++) {
-				GObject b = getMapLine(i).getObjectBackground(j);
-				Sprite toDraw = getSprite(stateTime, j, i, false);
-				if(b != null && toDraw != null && isVisible(refPosition, b.getBody().getPosition(), b.getDimension())) {
-					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
-					Color c = batch.getColor();
-					batch.setColor(new Color(0.6f, 0.2f, 0f, 0.7f));
-					batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
-					batch.setColor(c);
+		Vector2[] range = rangeVisible(refPosition);
+		//draw tiles
+		for(int i = (int) range[0].y; i < (int) range[1].y; i++) {
+			for(int j = (int) range[0].x; j < (int) range[1].x; j++) {
+				if(i >= 0 && i < getHeight()) {
+					if(j < 0 || j >= GConfig.MAP_WIDTH)
+						continue;
+					GObject b = getMapLine(i).getObjectBackground(j);
+					Sprite toDraw = getSprite(stateTime, j, i, false);
+					if(b != null && toDraw != null) {
+						batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+						Color c = batch.getColor();
+						batch.setColor(new Color(0.6f, 0.2f, 0f, 0.7f));
+						batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+						batch.setColor(c);
+					}
+					
+					toDraw = getSprite(stateTime, j, i, true);
+					GObject o = getMapLine(i).getObjectForeground(j);
+					if(o != null && toDraw != null) {
+						batch.draw(toDraw, o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
+					}
 				}
+			}
+		}
 				
-				toDraw = getSprite(stateTime, j, i, true);
-				GObject o = getMapLine(i).getObjectForeground(j);
-				if(o != null && toDraw != null && isVisible(refPosition, o.getBody().getPosition(), o.getDimension())) {
-					batch.draw(toDraw, o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
+				//draw water
+		for(int i = (int) range[0].y; i < (int) range[1].y; i++) {
+			for(int j = (int) range[0].x; j < (int) range[1].x; j++) {
+				if(i <= 0) {
+					Vector2 bodyPosition = new Vector2(j*GConfig.TILE_SPACING, i*GConfig.TILE_SPACING);
+					if(i == 0)
+						batch.draw(water.getSprite(false, true, true, true), bodyPosition.x + drawReference.x + (float) (15*Math.sin(stateTime/0.2)), bodyPosition.y + drawReference.y);
+					else
+						batch.draw(water.getSprite(true, true, true, true), bodyPosition.x + drawReference.x + (float) (15*Math.sin(stateTime/0.2)), bodyPosition.y + drawReference.y);
 				}
 			}
 		}
@@ -145,7 +167,7 @@ public class GMap {
 	 * @return the object if exits, null otherwise
 	 */
 	public GObject getObject(Vector2 position) {
-		if(mapLines.size() <= (int) position.y)
+		if((int) position.y < 0 || (int) position.y >= mapLines.size())
 			return null;
 		
 		GObject object = mapLines.get((int) position.y).getObjectForeground((int) position.x);

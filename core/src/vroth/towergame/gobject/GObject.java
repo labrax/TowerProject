@@ -5,6 +5,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
 
+import vroth.towergame.GConfig;
+
 public class GObject {
 	protected Fixture fixture;
 	protected Body body;
@@ -12,7 +14,7 @@ public class GObject {
 	protected Vector2 dimension;
 	protected float health;
 	protected int type = 0;
-	protected float damage = 45;
+	protected float damage = GConfig.DAMAGE;
 	
 	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health) {
 		this.fixture = fixture;
@@ -48,5 +50,10 @@ public class GObject {
 	
 	public Vector2 getDimension() {
 		return dimension;
+	}
+	
+	public Vector2 getCenter() {
+		return new Vector2(body.getPosition().x + dimension.x/2, body.getPosition().y + dimension.y/2);
+		
 	}
 }

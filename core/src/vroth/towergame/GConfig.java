@@ -6,7 +6,13 @@ public class GConfig {
 	public static String GAME_NAME = "TowerProject";
 
 	public static int GENERATION_HEIGHT = 30, GENERATION_WIDTH = 100, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35, TILE_SPACING = 70;
-	public static final int iron = 0x10, gold = 0x11, nothing = 0x0, dirt = 0x1;
+	public static final int iron = 0x10, gold = 0x11, nothing = 0x0, dirt = 0x1, water = 0x2, coin_bronze = 0x20, coin_silver = 0x21, coin_gold = 0x22;
+	
+	public static final int DISTANCE_RESOURCE_APPROACH = 10000, DISTANCE_RESOURCE_COLLECT = 2000;
+	
+	public static final int MIN_WATER_DAMAGE = 1, MAX_WATER_DAMAGE = 5;
+	
+	public static final int DAMAGE = 100;
 	
 	public static int MAP_WIDTH = 2*GENERATION_WIDTH;
 	

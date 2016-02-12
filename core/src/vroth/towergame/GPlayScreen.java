@@ -1,5 +1,7 @@
 package vroth.towergame;
 
+import java.util.Random;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
@@ -14,6 +16,7 @@ import com.badlogic.gdx.utils.Array;
 import vroth.towergame.gmap.GMap;
 import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
+import vroth.towergame.gobject.GObjectResource;
 import vroth.towergame.gobject.GPlayer;
 
 public class GPlayScreen implements IScreen {
@@ -33,11 +36,14 @@ public class GPlayScreen implements IScreen {
 	private Array<GObject> gameObjects = null;
 	private GMap gameMap = null;
 	
+	private Random random;
+	
 	public void create(World world) {
 		pointerPosition = new Vector2(0, 0);
 		mousePosition = new Vector2(0, 0);
 		
 		this.world = world;
+		this.random = new Random();
 		
 		gameObjects = new Array<GObject>();
 		gameMap = new GMap(world);
@@ -75,7 +81,42 @@ public class GPlayScreen implements IScreen {
 			}
 		}
 		
+		//player bellow water line
+		if(player.getBody().getPosition().y < 0) {
+			player.hit(random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
+		}
 		player.update(stateTime, deltaTime);
+		
+		//iterate through objects
+		for(GObject o : gameObjects) {
+			//object bellow water line
+			if(o.getBody().getPosition().y < 0) {
+				float hp = o.hit(random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
+				if(hp < 0) {
+					world.destroyBody(o.getBody());
+				}
+				gameObjects.removeValue(o, true);
+			}
+			//resource close to player
+			else if(o instanceof GObjectResource) {
+				float distance = o.getCenter().dst2(player.getCenter());
+				//System.out.println(distance);
+				if(distance < GConfig.DISTANCE_RESOURCE_COLLECT) {
+					player.addItem(o.getType());
+					world.destroyBody(o.getBody());
+					gameObjects.removeValue(o, true);
+				}
+				else if(distance < GConfig.DISTANCE_RESOURCE_APPROACH) {
+					Vector2 currVelocity = o.getBody().getLinearVelocity();
+					Vector2 direction = new Vector2(player.getCenter().x - o.getCenter().x, player.getCenter().y - o.getCenter().y);
+					direction.x *= 2;
+					direction.y *= 2;
+					Vector2 directionRandomized = new Vector2(direction.x + (random.nextInt(30)-15)/100*direction.x, direction.y + (random.nextInt(30)-15)/100*direction.y);
+					Vector2 approachDistanceFix = new Vector2((GConfig.DISTANCE_RESOURCE_APPROACH - distance)/GConfig.DISTANCE_RESOURCE_APPROACH*directionRandomized.x, (GConfig.DISTANCE_RESOURCE_APPROACH - distance)/GConfig.DISTANCE_RESOURCE_APPROACH*directionRandomized.y);
+					o.getBody().setLinearVelocity(new Vector2(Math.abs(currVelocity.x) > Math.abs(approachDistanceFix.x) ? currVelocity.x : approachDistanceFix.x, Math.abs(currVelocity.y) > Math.abs(approachDistanceFix.y) ? currVelocity.y : approachDistanceFix.y));
+				}
+			}
+		}
 		
 		if(GConfig.DEBUG_CONTROLS)
 			refPosition = new Vector2(refX, refY);
@@ -105,12 +146,21 @@ public class GPlayScreen implements IScreen {
 					o.getSprite(stateTime).getWidth(), o.getSprite(stateTime).getHeight(), 
 					o.getSprite(stateTime).getScaleX(), o.getSprite(stateTime).getScaleY(), 
 					o.getSprite(stateTime).getRotation());*/
+			if(o instanceof GObjectResource)
+				continue;
 			if(gameMap.isVisible(refPosition, o.getBody().getPosition(), o.getDimension()))
 				batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
 		}
 
 		//render the player
 		player.render(batch, stateTime, drawReference);
+		
+		for(GObject o : gameObjects) {
+			if(o instanceof GObjectResource) {
+				if(gameMap.isVisible(refPosition, o.getBody().getPosition(), o.getDimension()))
+					batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);				
+			}
+		}
 		batch.end();
 
 		if(GConfig.DEBUG_PHYSICS)

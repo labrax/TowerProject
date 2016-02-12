@@ -7,8 +7,8 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
@@ -18,15 +18,31 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 import vroth.towergame.GConfig;
-import vroth.towergame.gutil.ResourcesLoader;
+import vroth.towergame.gutil.GResourcesLoader;
 
 public class GObjectFactory {
+	//private static HashMap<Integer, GObject> itemsSamples;
 	private static GObjectFactory instance = null;
 	private World world;
 	
 	private GObjectFactory(World world) {
 		this.world = world;
+		//createItemsSamples();
 	}
+	
+	/*private void createItemsSamples() {
+		Vector2 dummyVector = new Vector2(0, 0);
+		itemsSamples = new HashMap<Integer, GObject>();
+		itemsSamples.put(0x1, newSmallResource(GDatabase.getInstance().getFileFromItem(0x1), dummyVector, dummyVector));
+		itemsSamples.put(0x10, newSmallResource(GDatabase.getInstance().getFileFromItem(0x10), dummyVector, dummyVector));
+		itemsSamples.put(0x20, newCoin(GDatabase.getInstance().getFileFromItem(0x20), dummyVector, dummyVector));
+		itemsSamples.put(0x21, newCoin(GDatabase.getInstance().getFileFromItem(0x21), dummyVector, dummyVector));
+		itemsSamples.put(0x22, newCoin(GDatabase.getInstance().getFileFromItem(0x22), dummyVector, dummyVector));
+	}
+	
+	public GObject getItemSample(int type) {
+		return itemsSamples.get(type);
+	}*/
 
 	public static GObjectFactory getInstance(World world) {
 		if(instance == null)
@@ -59,7 +75,7 @@ public class GObjectFactory {
 	public GPlayer newPlayer(String folder, Vector2 position) {
 		Body body = world.createBody(newBodyDef(BodyDef.BodyType.DynamicBody, position));
 		
-		ResourcesLoader rl = ResourcesLoader.getResourcesLoader();
+		GResourcesLoader rl = GResourcesLoader.getResourcesLoader();
 		Sprite front = rl.loadSprite(folder + "front.png");
 		Sprite duck = rl.loadSprite(folder + "duck.png");
 		Sprite hurt = rl.loadSprite(folder + "hurt.png");
@@ -112,7 +128,7 @@ public class GObjectFactory {
 		
 		Sprite[] sprites = new Sprite[16];
 		for(int i = 0; i < 16; i++){
-			sprites[i] = ResourcesLoader.getResourcesLoader().loadSprite(filePrefix + i + ".png");
+			sprites[i] = GResourcesLoader.getResourcesLoader().loadSprite(filePrefix + i + ".png");
 		}
 		
 		PolygonShape shape = new PolygonShape();
@@ -130,7 +146,7 @@ public class GObjectFactory {
 	private GObject newStaticObject(String file, Vector2 position, int health) {
 		Body body = world.createBody(newBodyDef(BodyType.StaticBody, position));
 		
-		Sprite staticSprite = ResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(staticSprite.getWidth()/2, staticSprite.getHeight()/2, new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2), 0);
@@ -147,7 +163,7 @@ public class GObjectFactory {
 	private GObject newItem(String file, Vector2 position) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
-		Sprite staticSprite = ResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(staticSprite.getWidth()/2, staticSprite.getHeight()/2, new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2), 0);
@@ -164,7 +180,7 @@ public class GObjectFactory {
 	private GObjectResource newSmallResource(String file, Vector2 position, Vector2 velocity) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
-		Sprite staticSprite = ResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(staticSprite.getWidth()/2, staticSprite.getHeight()/2, new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2), 0);
@@ -178,13 +194,13 @@ public class GObjectFactory {
         body.setLinearVelocity(velocity);
         body.setFixedRotation(true);
         
-		return new GObjectResource(fixture, body, staticSprite, dimension, 5);
+		return new GObjectResource(fixture, body, staticSprite, dimension, 35);
 	}
 	
 	private GObjectResource newCoin(String file, Vector2 position, Vector2 velocity) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
-		Sprite staticSprite = ResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
 		
 		CircleShape shape = new CircleShape();
 		shape.setPosition(new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2));
@@ -199,7 +215,7 @@ public class GObjectFactory {
         body.setLinearVelocity(velocity);
         body.setFixedRotation(true);
         
-		return new GObjectResource(fixture, body, staticSprite, dimension, 5);
+		return new GObjectResource(fixture, body, staticSprite, dimension, 25);
 	}
 	
 	private void setBackground(GObject tile) {
@@ -215,6 +231,13 @@ public class GObjectFactory {
 			setBackground(newDirt);
 		newDirt.setType(GConfig.dirt);
 		return newDirt;
+	}
+	
+	public GTile newWater() {
+		GTile newWater = newTile("tiles/lava", new Vector2(0, 0), 1);
+		setBackground(newWater);
+		newWater.setType(GConfig.water);
+		return newWater;
 	}
 	
 	public GObject newIron(Vector2 position, boolean background) {
@@ -242,20 +265,26 @@ public class GObjectFactory {
 		Array<GObject> objects = new Array<GObject>();
 		int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN; 
 		for(int i = 0; i < resources; i++) {
+			int type;
 			String file;
 			switch(r.nextInt(3)) {
 				case 0:
 					file = "items/coinBronze.png";
+					type = 0x20;
 					break;
 				case 1:
 					file = "items/coinSilver.png";
+					type = 0x21;
 					break;
 				default:
 					file = "items/coinGold.png";
+					type = 0x22;
 					break;
 			}
 			Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*5 : r.nextFloat()*-5, r.nextBoolean() ? r.nextFloat()*5 : r.nextFloat()*-5);
-			objects.add(newCoin(file, basePosition, velocity));
+			GObjectResource resource = newCoin(file, basePosition, velocity);
+			resource.setType(type);
+			objects.add(resource);
 		}
 		return objects;
 	}
@@ -263,7 +292,6 @@ public class GObjectFactory {
 	public Array<GObject> newResource(int type, Vector2 basePosition) {
 		if(type == GConfig.gold)
 			return newCoins(basePosition);
-		
 		String file;
 		switch(type) {
 			case GConfig.iron:
@@ -281,7 +309,9 @@ public class GObjectFactory {
 		int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN;
 		for(int i = 0; i < resources; i++) {
 			Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
-			objects.add(newSmallResource(file, basePosition, velocity));
+			GObjectResource resource = newSmallResource(file, basePosition, velocity);
+			resource.setType(type);
+			objects.add(resource);
 		}
 		return objects;
 	}
