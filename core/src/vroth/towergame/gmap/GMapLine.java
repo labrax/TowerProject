@@ -20,7 +20,8 @@ public class GMapLine {
 	}
 	
 	public void setObjectBackground(int x, GObject object) {
-		this.lineBackground[x] = object;
+		if(x > GConfig.MAP_WIDTH/2-GConfig.GENERATION_WIDTH/2 || x < GConfig.MAP_WIDTH/2 + GConfig.GENERATION_WIDTH/2)
+			this.lineBackground[x] = object;
 	}
 	
 	public GObject getObjectForeground(int x) {
@@ -31,6 +32,7 @@ public class GMapLine {
 	}
 	
 	public void setObjectForeground(int x, GObject object) {
-		this.lineForeground[x] = object;
+		if(x > GConfig.MAP_WIDTH/2-GConfig.GENERATION_WIDTH/2 || x < GConfig.MAP_WIDTH/2 + GConfig.GENERATION_WIDTH/2)
+			this.lineForeground[x] = object;
 	}
 }

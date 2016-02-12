@@ -219,7 +219,7 @@ public class GPlayer extends GObject {
 					else if(keyRight)
 						body.applyForceToCenter(new Vector2(body.getLinearVelocity().x < GConfig.SPEED_WALK ? GConfig.SPEED_WALK * deltaTime : 0, 0), true);
 					if(keyUp) {
-					//	body.applyForceToCenter(new Vector2(0, GConfig.FORCE_UP), true);
+						body.applyForceToCenter(new Vector2(0, GConfig.FORCE_UP), true);
 						//keyUp = false;
 					}
 				}

@@ -44,7 +44,7 @@ public class GPlayScreen implements IScreen {
 		gameMap.generateMapV2();
 		
 		GObjectFactory factory = GObjectFactory.getInstance(world);
-		player = factory.newPlayer("p1/", new Vector2(GConfig.MAP_WIDTH/2*70, (GConfig.GENERATION_HEIGHT+1)*70));
+		player = factory.newPlayer("p1/", new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING));
 		
 		/*GObject tile;
 		tile = factory.newBox(new Vector2(GConfig.MAP_WIDTH/2*70+100, (GConfig.GENERATION_HEIGHT+1)*70 + 100));

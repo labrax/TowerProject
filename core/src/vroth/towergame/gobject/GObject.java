@@ -12,7 +12,7 @@ public class GObject {
 	protected Vector2 dimension;
 	protected float health;
 	protected int type = 0;
-	protected float damage = 30;
+	protected float damage = 45;
 	
 	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health) {
 		this.fixture = fixture;

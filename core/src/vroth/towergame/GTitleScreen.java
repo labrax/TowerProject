@@ -30,7 +30,7 @@ public class GTitleScreen implements IScreen {
 	private float stateTime = 0;
 	private Vector2 refPosition;
 	
-	private int bHeight, bWidth, bTries;
+	private int bHeight, bWidth, bTries, bRealWidth;
 	
 	private BitmapFont titleFont;
 	private float titleFontX, titleFontY;
@@ -69,25 +69,27 @@ public class GTitleScreen implements IScreen {
 		this.map = new GMap(world);
 		GObjectFactory factory = GObjectFactory.getInstance(world);
 		
-		bWidth = GConfig.MAP_WIDTH;
+		bRealWidth = GConfig.MAP_WIDTH;
+		bWidth = GConfig.GENERATION_WIDTH;
 		bHeight = GConfig.GENERATION_HEIGHT;
 		bTries = GConfig.GENERATION_TRIES;
 		
+		GConfig.MAP_WIDTH = 70;
 		GConfig.GENERATION_HEIGHT = 10;
-		GConfig.MAP_WIDTH = 20;
+		GConfig.GENERATION_WIDTH = 20;
 		GConfig.GENERATION_TRIES = 3;
 		map.generateMapV2();
 		
-		//2 down
+		//2 tiles down
 		if(map.getSprite(0, GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1, true) == null) {
 			GObject object = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT-1)*GConfig.TILE_SPACING), false);
-			map.insertElement(object, GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1, true);
+			map.insertElement(object, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1), true);
 		}
 		
-		//1 down
+		//1 tiles down
 		if(map.getSprite(0, GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT, true) == null) {
 			GObject object = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT)*GConfig.TILE_SPACING), false);
-			map.insertElement(object, GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT, true);
+			map.insertElement(object, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT), true);
 		}
 		
 		player = factory.newPlayer("p1/", new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING));
@@ -195,7 +197,8 @@ public class GTitleScreen implements IScreen {
 		for(Body b: allBodies)
 			world.destroyBody(b);
 		
-		GConfig.MAP_WIDTH = bWidth;
+		GConfig.MAP_WIDTH = bRealWidth;
+		GConfig.GENERATION_WIDTH = bWidth;
 		GConfig.GENERATION_HEIGHT = bHeight;
 		GConfig.GENERATION_TRIES = bTries;
 	}

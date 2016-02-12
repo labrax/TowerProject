@@ -4,11 +4,11 @@ import com.badlogic.gdx.graphics.Color;
 
 public class GConfig {
 	public static String GAME_NAME = "TowerProject";
-	
-	public static int MAP_WIDTH = 100;
 
-	public static int GENERATION_HEIGHT = 30, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35, TILE_SPACING = 70;
+	public static int GENERATION_HEIGHT = 30, GENERATION_WIDTH = 100, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35, TILE_SPACING = 70;
 	public static final int iron = 0x10, gold = 0x11, nothing = 0x0, dirt = 0x1;
+	
+	public static int MAP_WIDTH = 2*GENERATION_WIDTH;
 	
 	public static final int MAX_RESOURCE_RESPAWN = 10, MIN_RESOURCE_RESPAWN = 1;
 	
@@ -20,7 +20,7 @@ public class GConfig {
 	
 	public static float HURT_TIME = 0.8f;
 	public static float ANIMATION_FRAME_TIME = 0.1f;
-	public static float FORCE_UP = (float) Math.pow(10, 30);
+	public static float FORCE_UP = (float) Math.pow(10, 32);
 	public static float SPEED_WALK = (float) Math.pow(10, 14);
 	public static float EPSILON = 0.05f;
 	public static float PLAYER_DENSITY = 500000f;
