@@ -78,7 +78,7 @@ public class GObjectFactory {
 	public GPlayer newPlayer(String folder, Vector2 position) {
 		Body body = world.createBody(newBodyDef(BodyDef.BodyType.DynamicBody, position));
 		
-		GResourcesLoader rl = GResourcesLoader.getResourcesLoader();
+		GResourcesLoader rl = GResourcesLoader.getInstance();
 		Sprite front = rl.loadSprite(folder + "front.png");
 		Sprite duck = rl.loadSprite(folder + "duck.png");
 		Sprite hurt = rl.loadSprite(folder + "hurt.png");
@@ -131,7 +131,7 @@ public class GObjectFactory {
 		
 		Sprite[] sprites = new Sprite[16];
 		for(int i = 0; i < 16; i++){
-			sprites[i] = GResourcesLoader.getResourcesLoader().loadSprite(filePrefix + i + ".png");
+			sprites[i] = GResourcesLoader.getInstance().loadSprite(filePrefix + i + ".png");
 		}
 		
 		PolygonShape shape = new PolygonShape();
@@ -146,10 +146,10 @@ public class GObjectFactory {
 		return new GTile(fixture, body, sprites, dimension, health);
 	}
 	
-	private GObject newStaticObject(String file, Vector2 position, int health) {
+	/*private GObject newStaticObject(String file, Vector2 position, int health) {
 		Body body = world.createBody(newBodyDef(BodyType.StaticBody, position));
 		
-		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getInstance().loadSprite(file);
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(staticSprite.getWidth()/2, staticSprite.getHeight()/2, new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2), 0);
@@ -161,12 +161,12 @@ public class GObjectFactory {
         shape.dispose();
         
 		return new GObject(fixture, body, staticSprite, dimension, health, health);
-	}
+	}*/
 	
 	private GObject newItem(String file, Vector2 position, int health) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
-		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getInstance().loadSprite(file);
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(staticSprite.getWidth()/2, staticSprite.getHeight()/2, new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2), 0);
@@ -183,7 +183,7 @@ public class GObjectFactory {
 	private GObjectResource newSmallResource(String file, Vector2 position, Vector2 velocity) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
-		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getInstance().loadSprite(file);
 		
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(staticSprite.getWidth()/2, staticSprite.getHeight()/2, new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2), 0);
@@ -203,7 +203,7 @@ public class GObjectFactory {
 	private GObjectResource newCoin(String file, Vector2 position, Vector2 velocity) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
-		Sprite staticSprite = GResourcesLoader.getResourcesLoader().loadSprite(file);
+		Sprite staticSprite = GResourcesLoader.getInstance().loadSprite(file);
 		
 		CircleShape shape = new CircleShape();
 		shape.setPosition(new Vector2(staticSprite.getWidth()/2, staticSprite.getHeight()/2));
@@ -228,6 +228,13 @@ public class GObjectFactory {
 		tile.fixture.setFilterData(filter);
 	}
 	
+	public void setBuilding(GObject object) {
+		Filter filter = object.fixture.getFilterData(); 
+		filter.categoryBits = GConfig.CATEGORY_BUILDING;
+		filter.maskBits = GConfig.MASK_BUILDING;
+		object.fixture.setFilterData(filter);
+	}
+	
 	public GTile newDirt(Vector2 position, boolean background) {
 		GTile newDirt = newTile("tiles/grass", position, 30);
 		if(background)
@@ -243,16 +250,38 @@ public class GObjectFactory {
 		return newWater;
 	}
 	
-	public GObject newIron(Vector2 position, boolean background) {
-		GObject newIron = newStaticObject("tiles/castleCenter.png", position, 50);
+	public GTile newIron(Vector2 position, boolean background) {
+		GTile newIron = newTile("tiles/grass", position, 50);
 		if(background)
 			setBackground(newIron);
 		newIron.setType(GConfig.iron);
 		return newIron;
 	}
 	
-	public GObject newCoinBox(Vector2 position, boolean background) {
-		GObject coinBox = newStaticObject("tiles/boxCoin.png", position, 80);
+	public GTile newHouse(Vector2 position, boolean background) {
+		GTile newHouse = newTile("tiles/houseBeige", position, 100);
+		if(background)
+			setBackground(newHouse);
+		newHouse.setType(GConfig.house);
+		return newHouse;
+	}
+	
+	public GTile newCastle(Vector2 position, boolean background) {
+		GTile newHouse = newTile("tiles/castle", position, 100);
+		if(background)
+			setBackground(newHouse);
+		newHouse.setType(GConfig.castle);
+		return newHouse;
+	}
+	
+	public GObject newLadder(Vector2 position) {
+		GObject newLadder = newTile("items/ladder/ladder", position, 25);
+		newLadder.setType(GConfig.ladder);
+		return newLadder;
+	}
+	
+	public GTile newCoinTile(Vector2 position, boolean background) {
+		GTile coinBox = newTile("tiles/grass", position, 80);
 		if(background)
 			setBackground(coinBox);
 		coinBox.setType(GConfig.gold);
@@ -290,17 +319,34 @@ public class GObjectFactory {
 	}
 	
 	public Array<GObject> newResource(int type, Vector2 basePosition) {
-		if(type == GConfig.gold)
-			return newCoins(basePosition);
-		String file = gDatabase.getItemToFile(type);
-		Random r = new Random();
 		Array<GObject> objects = new Array<GObject>();
-		int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN;
-		for(int i = 0; i < resources; i++) {
-			Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
-			GObjectResource resource = newSmallResource(file, basePosition, velocity);
-			resource.setType(type);
-			objects.add(resource);
+		Random r = new Random();
+		
+		if(type == GConfig.house || type == GConfig.castle)
+			type = GConfig.iron;
+		
+		switch(type) {
+			case GConfig.gold:
+				return newCoins(basePosition);
+			case GConfig.dirt:
+			case GConfig.iron:
+				String file = gDatabase.getItemToFile(type);
+				int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN;
+				for(int i = 0; i < resources; i++) {
+					Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
+					GObjectResource resource = newSmallResource(file, basePosition, velocity);
+					resource.setType(type);
+					objects.add(resource);
+				}
+				return objects;
+			case GConfig.ladder:
+				Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
+				GObjectResource resource = newSmallResource(gDatabase.getItemToFile(type), basePosition, velocity);
+				resource.setType(type);
+				objects.add(resource);
+				return objects;
+			default:
+				break;
 		}
 		return objects;
 	}

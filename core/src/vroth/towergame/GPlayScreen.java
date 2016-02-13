@@ -4,13 +4,13 @@ import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
@@ -19,6 +19,9 @@ import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GObjectResource;
 import vroth.towergame.gobject.GPlayer;
+import vroth.towergame.gobject.GTile;
+import vroth.towergame.gutil.GDatabase;
+import vroth.towergame.gutil.GResourcesLoader;
 
 public class GPlayScreen implements IScreen {
 	private World world;
@@ -26,8 +29,9 @@ public class GPlayScreen implements IScreen {
 
 	float refX, refY;
 	
-	private Vector2 mousePosition;
-	private Vector2 pointerPosition;
+	private Vector2 mousePosition, pointerPosition;
+	private int clickPointer, clickButton;
+	private int cursorSelection = 0;
 	private boolean isClicking = false;
 	
 	private Vector2 refPosition;
@@ -53,11 +57,7 @@ public class GPlayScreen implements IScreen {
 		GObjectFactory factory = GObjectFactory.getInstance(world);
 		player = factory.newPlayer("p1/", new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING));
 		
-		/*GObject tile;
-		tile = factory.newBox(new Vector2(GConfig.MAP_WIDTH/2*70+100, (GConfig.GENERATION_HEIGHT+1)*70 + 100));
-		gameObjects.add(tile);
-		tile = factory.newBox(new Vector2(GConfig.MAP_WIDTH/2*70+100, (GConfig.GENERATION_HEIGHT+1)*70 + 150));
-		gameObjects.add(tile);*/
+		loadCursor();
 	}
 	
 	public void update(float deltaTime) {
@@ -66,7 +66,7 @@ public class GPlayScreen implements IScreen {
 		
 		if(player.getBody().getLinearVelocity().x != 0 || player.getBody().getLinearVelocity().y != 0)
 			updateMouse();
-		if(isClicking) {
+		if(isClicking && clickButton == 0) {
 			GObject object = gameMap.getObject(pointerPosition);
 			if(object != null) {
 				int objectType = object.getType();
@@ -89,6 +89,37 @@ public class GPlayScreen implements IScreen {
 					gameMap.destroyObject(pointerPosition);
 				}
 			}
+		}
+		else if(isClicking && clickButton == 1) {
+			boolean built = false;
+			GObject object = null;
+			int type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
+			switch(type) {
+				case GConfig.ladder:
+					object = GObjectFactory.getInstance(world).newLadder(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70));
+					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+						built = gameMap.insertObject(object, pointerPosition);
+					else if(gameMap.getForegroundObject(pointerPosition) != null && gameMap.getForegroundObject(pointerPosition).getType() == GConfig.castle)
+						built = gameMap.insertObject(object, pointerPosition);
+					break;
+				case GConfig.dirt:
+					object = GObjectFactory.getInstance(world).newDirt(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+						built = gameMap.insertTile((GTile) object, pointerPosition);
+					break;
+				case GConfig.castle:
+					object = GObjectFactory.getInstance(world).newCastle(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+						built = gameMap.insertTile((GTile) object, pointerPosition);
+					break;
+				default:
+					break;
+			}
+			if(built == false)
+				world.destroyBody(object.getBody());
+			if(object != null && object.getType() != GConfig.dirt)
+				GObjectFactory.getInstance(world).setBuilding(object);
+			//System.out.println(built);
 		}
 		
 		//player bellow water line
@@ -152,10 +183,6 @@ public class GPlayScreen implements IScreen {
 		
 		//render the objects
 		for(GObject o: gameObjects) {
-			/*batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x, o.getBody().getPosition().y, 
-					o.getSprite(stateTime).getWidth(), o.getSprite(stateTime).getHeight(), 
-					o.getSprite(stateTime).getScaleX(), o.getSprite(stateTime).getScaleY(), 
-					o.getSprite(stateTime).getRotation());*/
 			if(o instanceof GObjectResource)
 				continue;
 			if(gameMap.isVisible(refPosition, o.getBody().getPosition(), o.getDimension()))
@@ -232,6 +259,8 @@ public class GPlayScreen implements IScreen {
 
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		isClicking = true;
+		clickPointer = pointer;
+		clickButton = button;
 		return true;
 	}
 
@@ -242,6 +271,7 @@ public class GPlayScreen implements IScreen {
 
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		isClicking = true;
+		clickPointer = pointer;
 		mouseMoved(screenX, screenY);
 		return true;
 	}
@@ -274,8 +304,21 @@ public class GPlayScreen implements IScreen {
 		updateMouse();
 		return true;
 	}
+	
+	public void loadCursor() {
+		//System.out.println(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection));
+		//System.out.println(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection)));
+		Cursor customCursor = Gdx.graphics.newCursor(GResourcesLoader.getInstance().loadPixmap(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection))), 16, 16);
+		Gdx.graphics.setCursor(customCursor);
+		customCursor.dispose();
+	}
 
 	public boolean scrolled(int amount) {
-		return false;
+		cursorSelection += amount;
+		if(cursorSelection < 0)
+			cursorSelection = GConfig.AMOUNT_ITEMS-1;
+		cursorSelection = cursorSelection%GConfig.AMOUNT_ITEMS;
+		loadCursor();
+		return true;
 	}
 }

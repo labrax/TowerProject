@@ -61,7 +61,7 @@ public class GPlayer extends GObject {
 		
 		items = new HashMap<Integer, Integer>();
 		
-		itemFont = GResourcesLoader.getResourcesLoader().getFont("kenpixel_blocks.fnt");
+		itemFont = GResourcesLoader.getInstance().getFont("kenpixel_blocks.fnt");
 		itemFont.getData().setScale(0.1f);
 		itemFont.setColor(new Color(0, 0, 0, 1));
 	}
@@ -77,7 +77,7 @@ public class GPlayer extends GObject {
 		Vector2 basePosition = new Vector2(GConfig.SCREEN_WIDTH-50, 2*GConfig.SCREEN_HEIGHT/3);
 		for(Integer type : gDatabase.getItemsToFileRegister()) {
 			if(items.containsKey(type)) {
-				Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getItemToFile(type));
+				Texture texture = GResourcesLoader.getInstance().loadTexture(gDatabase.getItemToFile(type));
 				
 				batch.draw(texture, basePosition.x, basePosition.y - amountDraw*40, 19, texture.getWidth() > 19 ? 19*texture.getHeight()/texture.getWidth() : texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
 				
@@ -97,12 +97,12 @@ public class GPlayer extends GObject {
 			int maxMarks = (int) Math.ceil(maxHealth/5);
 			for(int i = 1; i <= healthMarks; i++) {
 				if(i+1 <= healthMarks) {
-					Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getElementToFile("heartFull"));
+					Texture texture = GResourcesLoader.getInstance().loadTexture(gDatabase.getElementToFile("heartFull"));
 					batch.draw(texture, basePosition.x + amountDraw*54, basePosition.y, texture.getWidth(), texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
 					i++;
 				}
 				else {
-					Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getElementToFile("heartHalf"));
+					Texture texture = GResourcesLoader.getInstance().loadTexture(gDatabase.getElementToFile("heartHalf"));
 					batch.draw(texture, basePosition.x + amountDraw*54, basePosition.y, texture.getWidth(), texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
 					i++;
 				}
@@ -110,7 +110,7 @@ public class GPlayer extends GObject {
 			}
 			healthMarks++;
 			for(int i = healthMarks; i < maxMarks; i+=2) {
-				Texture texture = GResourcesLoader.getResourcesLoader().loadTexture(gDatabase.getElementToFile("heartEmpty"));
+				Texture texture = GResourcesLoader.getInstance().loadTexture(gDatabase.getElementToFile("heartEmpty"));
 				batch.draw(texture, basePosition.x + amountDraw*54, basePosition.y, texture.getWidth(), texture.getHeight(), 0, 0, texture.getWidth(), texture.getHeight(), false, false);
 				amountDraw++;
 			}
@@ -143,7 +143,7 @@ public class GPlayer extends GObject {
 		
 		if(willReturn == null) {
 			System.out.println("is null with " + currState);
-			return GResourcesLoader.getResourcesLoader().getErrSprite();
+			return GResourcesLoader.getInstance().getErrSprite();
 		}
 		else {
 			willReturn = new Sprite(willReturn);

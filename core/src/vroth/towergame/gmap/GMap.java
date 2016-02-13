@@ -16,6 +16,7 @@ import vroth.towergame.GConfig;
 import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GTile;
+import vroth.towergame.gutil.GResourcesLoader;
 
 /**
  * This class will implement the map grid, with an updatable height
@@ -29,6 +30,8 @@ public class GMap {
 	private GObjectFactory factory;
 	
 	private GTile water;
+	private Sprite ironSprite;
+	private Sprite coinSprite;
 	
 	/**
 	 * Create the game map handler in a physical world
@@ -37,6 +40,8 @@ public class GMap {
 	public GMap(World world) {
 		factory = GObjectFactory.getInstance(world);
 		water = factory.newWater();
+		ironSprite = GResourcesLoader.getInstance().loadSprite("resource/stoneCoal.png");
+		coinSprite = GResourcesLoader.getInstance().loadSprite("resource/coins.png");
 		mapLines = new ArrayList<GMapLine>();
 	}
 	
@@ -46,6 +51,25 @@ public class GMap {
 	 */
 	public int getHeight() {
 		return mapLines.size();
+	}
+	
+	/**
+	 * Insert a line on the top of the current map information
+	 * @param mapLine
+	 */
+	public void insertGMapLine(GMapLine mapLine) {
+		mapLines.add(mapLine);
+	}
+	
+	/**
+	 * Return a line on the y coordinate
+	 * @param y is the height
+	 * @return the line if it there is information, null otherwise
+	 */
+	public GMapLine getMapLine(int y) {
+		if(y < mapLines.size())
+			return mapLines.get(y);
+		return null;
 	}
 	
 	/**
@@ -77,7 +101,7 @@ public class GMap {
 	 * @param reference
 	 * @return
 	 */
-	public Vector2[] rangeVisible(Vector2 refPosition) {
+	private Vector2[] rangeVisible(Vector2 refPosition) {
 		Vector2[] visible = new Vector2[2];
 		visible[0] = new Vector2((int) Math.floor(refPosition.x/GConfig.TILE_SPACING - GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING - 1), (int) Math.ceil(refPosition.y/GConfig.TILE_SPACING - GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING - 1));
 		visible[1] = new Vector2((int) Math.floor(refPosition.x/GConfig.TILE_SPACING + GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING + 1), (int) Math.ceil(refPosition.y/GConfig.TILE_SPACING + GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING + 1)); 
@@ -85,41 +109,185 @@ public class GMap {
 		return visible;
 	}
 	
+	private boolean[] getObjectMask(int x, int y, int type) {
+		boolean top = false, down = false, left = false, right = false;
+		boolean[] willReturn = new boolean[4];
+		for(int i = 0; i < 4; i++)
+			willReturn[i] = false;
+			
+		if(y >= mapLines.size())
+			return null;
+
+		GObject object;
+		object = mapLines.get(y).getStaticObject(x);
+		
+		if(object == null)
+			return null;
+		
+		if(object instanceof GTile) {
+			if(mapLines.size() > y) {
+				if(mapLines.get(y).getStaticObject(x-1) != null && (mapLines.get(y).getStaticObject(x-1).getType() == type))
+					left = true;
+				if(mapLines.get(y).getStaticObject(x+1) != null && (mapLines.get(y).getStaticObject(x+1).getType() == type))
+					right = true;
+				if(y-1 >= 0 && mapLines.get(y-1).getStaticObject(x) != null && (mapLines.get(y-1).getStaticObject(x).getType() == type))
+					down = true;
+			}
+			if(mapLines.size() > y+1) {
+				if(mapLines.get(y+1).getStaticObject(x) != null && (mapLines.get(y+1).getStaticObject(x).getType() == type))
+					top = true;
+			}
+		
+			willReturn[0] = top;
+			willReturn[1] = down;
+			willReturn[2] = left;
+			willReturn[3] = right;
+			return willReturn;
+		}
+		return willReturn;
+	}
+	
 	/**
-	 * Render the map on the screen
+	 * Get a sprite from the map elements, checking the neighbours for the correct sprite
+	 * @param stateTime is the time since the game beginning
+	 * @param x is the x coordinate
+	 * @param y is the y coordinate
+	 * @param foreground if the element is on the foreground or background.
+	 * @return the sprite
+	 */
+	private boolean[] getTileMask(int x, int y, boolean foreground, int type) {
+		boolean top = false, down = false, left = false, right = false;
+		boolean[] willReturn = new boolean[4];
+		for(int i = 0; i < 4; i++)
+			willReturn[i] = false;
+			
+		if(y >= mapLines.size())
+			return null;
+
+		GObject object;
+		if(foreground)
+			object = mapLines.get(y).getTileForeground(x);
+		else
+			object = mapLines.get(y).getTileBackground(x);
+		
+		if(object == null)
+			return null;
+		
+		if(object instanceof GTile) {
+			if(mapLines.size() > y) {
+				if(foreground) {
+					if(mapLines.get(y).getTileForeground(x-1) != null && (mapLines.get(y).getTileForeground(x-1).getType()&type) > 0)
+						left = true;
+					if(mapLines.get(y).getTileForeground(x+1) != null && (mapLines.get(y).getTileForeground(x+1).getType()&type) > 0)
+						right = true;
+					if(y-1 >= 0 && mapLines.get(y-1).getTileForeground(x) != null && (mapLines.get(y-1).getTileForeground(x).getType()&type) > 0)
+						down = true;
+				}
+				else {
+					if(mapLines.get(y).getTileBackground(x-1) != null && (mapLines.get(y).getTileBackground(x-1).getType()&type) > 0)
+						left = true;
+					if(mapLines.get(y).getTileBackground(x+1) != null && (mapLines.get(y).getTileBackground(x+1).getType()&type) > 0)
+						right = true;
+					if(y-1 >= 0 && mapLines.get(y-1).getTileBackground(x) != null && (mapLines.get(y-1).getTileBackground(x).getType()&type) > 0)
+						down = true;
+				}
+			}
+			if(mapLines.size() > y+1) {
+				if(foreground) {
+					if(mapLines.get(y+1).getTileForeground(x) != null && (mapLines.get(y+1).getTileForeground(x).getType()&type) > 0)
+						top = true;
+				}
+				else {
+					if(mapLines.get(y+1).getTileBackground(x) != null && (mapLines.get(y+1).getTileBackground(x).getType()&type) > 0)
+						top = true;
+				}
+			}
+		
+			willReturn[0] = top;
+			willReturn[1] = down;
+			willReturn[2] = left;
+			willReturn[3] = right;
+			return willReturn;
+		}
+		return willReturn;
+	}
+	
+	/**
+	 * Render tiles at a position
 	 * @param batch
 	 * @param stateTime is the stateTime since the beginning of the game
-	 * @param refPosition is the player reference position
-	 * @param drawReference is the drawing reference for the screen size
+	 * @param drawReference is the drawing reference
+	 * @param x is the coordinate
+	 * @param y is the coordinate
 	 */
-	public void render(SpriteBatch batch, float stateTime, Vector2 refPosition, Vector2 drawReference) {
-		Vector2[] range = rangeVisible(refPosition);
-		//draw tiles
+	private void renderPosition(SpriteBatch batch, float stateTime, Vector2 drawReference, int x, int y) {
+		GTile b = getMapLine(y).getTileBackground(x);
+		GTile f = getMapLine(y).getTileForeground(x);
+		GObject o = getMapLine(y).getStaticObject(x);
+		
+		boolean[] mask = getTileMask(x, y, false, ~GConfig.nothing);
+		if(b != null) {
+			Sprite toDraw = b.getSprite(mask[0], mask[1], mask[2], mask[3]);
+			batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+			switch(b.getType()) {
+				case GConfig.gold:
+					batch.draw(coinSprite, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+					break;
+				case GConfig.iron:
+					batch.draw(ironSprite, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+					break;
+				default:
+					break;
+			}
+			Color c = batch.getColor();
+			batch.setColor(new Color(0.6f, 0.2f, 0f, 0.7f));
+			batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
+			batch.setColor(c);
+		}
+
+		mask = getTileMask(x, y, true, ~GConfig.nothing);
+		if(f != null) {
+			Sprite toDraw = f.getSprite(mask[0], mask[1], mask[2], mask[3]);
+			batch.draw(toDraw, f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+			switch(f.getType()) {
+				case GConfig.gold:
+					batch.draw(coinSprite, f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+					break;
+				case GConfig.iron:
+					batch.draw(ironSprite, f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+					break;
+				default:
+					break;
+			}
+		}
+		
+		if(o != null) {
+			Sprite toDraw;
+			if(o instanceof GTile) {
+				GTile t = (GTile) o;
+				mask = getObjectMask(x, y, o.getType());
+				toDraw = t.getSprite(mask[0], mask[1], mask[2], mask[3]);
+			}
+			else {
+				toDraw = o.getSprite(stateTime);
+			}
+			batch.draw(toDraw, o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
+		}
+	}
+	
+	private void renderTiles(SpriteBatch batch, float stateTime, Vector2 drawReference, Vector2 range[]) {
 		for(int i = (int) range[0].y; i < (int) range[1].y; i++) {
 			for(int j = (int) range[0].x; j < (int) range[1].x; j++) {
 				if(i >= 0 && i < getHeight()) {
 					if(j < 0 || j >= GConfig.MAP_WIDTH)
 						continue;
-					GObject b = getMapLine(i).getObjectBackground(j);
-					Sprite toDraw = getSprite(stateTime, j, i, false);
-					if(b != null && toDraw != null) {
-						batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
-						Color c = batch.getColor();
-						batch.setColor(new Color(0.6f, 0.2f, 0f, 0.7f));
-						batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
-						batch.setColor(c);
-					}
-					
-					toDraw = getSprite(stateTime, j, i, true);
-					GObject o = getMapLine(i).getObjectForeground(j);
-					if(o != null && toDraw != null) {
-						batch.draw(toDraw, o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
-					}
+					renderPosition(batch, stateTime, drawReference, j, i);
 				}
 			}
 		}
-				
-		//draw water
+	}
+	
+	private void renderWater(SpriteBatch batch, float stateTime, Vector2 drawReference, Vector2 range[]) {
 		for(int i = (int) range[0].y; i < (int) range[1].y; i++) {
 			for(int j = (int) range[0].x; j < (int) range[1].x; j++) {
 				if(i <= 0) {
@@ -134,35 +302,80 @@ public class GMap {
 	}
 	
 	/**
-	 * Set a foreground element
-	 * @param object is the object
-	 * @param position is the position
+	 * Render the map on the screen
+	 * @param batch
+	 * @param stateTime is the stateTime since the beginning of the game
+	 * @param refPosition is the player reference position
+	 * @param drawReference is the drawing reference for the screen size
 	 */
-	public void insertElement(GObject object, Vector2 position) {
-		while((int) position.y >= mapLines.size()) {
-			mapLines.add(new GMapLine());
-		}
-		mapLines.get((int) position.y).setObjectForeground((int) position.x, object);
+	public void render(SpriteBatch batch, float stateTime, Vector2 refPosition, Vector2 drawReference) {
+		Vector2[] range = rangeVisible(refPosition);
+		renderTiles(batch, stateTime, drawReference, range);
+		renderWater(batch, stateTime, drawReference, range);
 	}
 	
 	/**
-	 * Set an GObject on the map
-	 * @param object is the object 
+	 * Insert a tile on the map foreground
+	 * @param tile is the tile
 	 * @param position is the coordinate
-	 * @param foreground if the element is on the front or back
+	 * @return true if successful, false if there is something on the position
 	 */
-	public void insertElement(GObject object, Vector2 position, boolean foreground) {
+	public boolean insertTile(GTile tile, Vector2 position) {
 		while((int) position.y >= mapLines.size()) {
 			mapLines.add(new GMapLine());
 		}
-		if(foreground)
-			mapLines.get((int) position.y).setObjectForeground((int) position.x, object);
-		else
-			mapLines.get((int) position.y).setObjectBackground((int) position.x, object);
+		if(mapLines.get((int) position.y).getTileForeground((int) position.x) == null) {
+			mapLines.get((int) position.y).setTileForeground((int) position.x, tile);
+			return true;
+		}
+		return false;
 	}
 	
 	/**
-	 * Return an object on a position if there is any on the foreground or background
+	 * Insert a tile on the map
+	 * @param tile is the tile
+	 * @param position is the coordinate
+	 * @param foreground if the tile is on the front or back
+	 * @return true if successful, false if there is something on the position
+	 */
+	public boolean insertTile(GTile tile, Vector2 position, boolean foreground) {
+		while((int) position.y >= mapLines.size()) {
+			mapLines.add(new GMapLine());
+		}
+		if(foreground) {
+			if(mapLines.get((int) position.y).getTileForeground((int) position.x) == null) {
+				mapLines.get((int) position.y).setTileForeground((int) position.x, tile);
+				return true;
+			}
+		}
+		else {
+			if(mapLines.get((int) position.y).getTileBackground((int) position.x) == null) {
+				mapLines.get((int) position.y).setTileBackground((int) position.x, tile);
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Insert an GObject on the map
+	 * @param object is the object
+	 * @param position is the coordinate
+	 * @return true if successful, false if there is something on the position
+	 */
+	public boolean insertObject(GObject object, Vector2 position) {
+		while((int) position.y >= mapLines.size()) {
+			mapLines.add(new GMapLine());
+		}
+		if(mapLines.get((int) position.y).getStaticObject((int) position.x) == null) {
+			mapLines.get((int) position.y).setStaticObject((int) position.x, object);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Return an object on a position
 	 * @param position is the coordinate
 	 * @return the object if exits, null otherwise
 	 */
@@ -170,9 +383,24 @@ public class GMap {
 		if((int) position.y < 0 || (int) position.y >= mapLines.size())
 			return null;
 		
-		GObject object = mapLines.get((int) position.y).getObjectForeground((int) position.x);
+		GObject object = mapLines.get((int) position.y).getStaticObject((int) position.x);
 		if(object == null)
-			object = mapLines.get((int) position.y).getObjectBackground((int) position.x);
+			object = mapLines.get((int) position.y).getTileForeground((int) position.x);
+		if(object == null)
+			object = mapLines.get((int) position.y).getTileBackground((int) position.x);
+		return object;
+	}
+	
+	/**
+	 * Return the foreground object
+	 * @param position is the coordinate
+	 * @return the object if exists, null otherwise
+	 */
+	public GObject getForegroundObject(Vector2 position) {
+		if((int) position.y < 0 || (int) position.y >= mapLines.size())
+			return null;
+		
+		GObject object = mapLines.get((int) position.y).getTileForeground((int) position.x);
 		return object;
 	}
 	
@@ -185,70 +413,18 @@ public class GMap {
 		if(mapLines.size() <= (int) position.y)
 			return;
 		
-		GObject object = mapLines.get((int) position.y).getObjectForeground((int) position.x);
+		GObject object = mapLines.get((int) position.y).getStaticObject((int) position.x);
 		if(object != null) {
-			mapLines.get((int) position.y).setObjectForeground((int) position.x, null);
+			mapLines.get((int) position.y).setStaticObject((int) position.x, null);
 			return;
 		}
-		mapLines.get((int) position.y).setObjectBackground((int) position.x, null);
-	}
-	
-	/**
-	 * Get a sprite from the map elements, checking the neighbours for the correct sprite
-	 * @param stateTime is the time since the game beginning
-	 * @param x is the x coordinate
-	 * @param y is the y coordinate
-	 * @param foreground if the element is on the foreground or background.
-	 * @return the sprite
-	 */
-	public Sprite getSprite(float stateTime, int x, int y, boolean foreground) {
-		boolean top = false, down = false, left = false, right = false;
-		if(y >= mapLines.size())
-			return null;
-
-		GObject object;
-		if(foreground)
-			object = mapLines.get(y).getObjectForeground(x);
-		else
-			object = mapLines.get(y).getObjectBackground(x);
 		
-		if(object == null)
-			return null;
-		
-		if(object instanceof GTile) {
-			if(mapLines.size() > y) {
-				if(foreground) {
-					if(mapLines.get(y).getObjectForeground(x-1) != null)
-						left = true;
-					if(mapLines.get(y).getObjectForeground(x+1) != null)
-						right = true;
-					if(y-1 >= 0 && mapLines.get(y-1).getObjectForeground(x) != null)
-						down = true;
-				}
-				else {
-					if(mapLines.get(y).getObjectBackground(x-1) != null)
-						left = true;
-					if(mapLines.get(y).getObjectBackground(x+1) != null)
-						right = true;
-					if(y-1 >= 0 && mapLines.get(y-1).getObjectBackground(x) != null)
-						down = true;
-				}
-			}
-			if(mapLines.size() > y+1) {
-				if(foreground) {
-					if(mapLines.get(y+1).getObjectForeground(x) != null)
-						top = true;
-				}
-				else {
-					if(mapLines.get(y+1).getObjectBackground(x) != null)
-						top = true;
-				}
-			}
-		
-			GTile tile = (GTile) object;
-			return tile.getSprite(top, down, left, right);
+		object = mapLines.get((int) position.y).getTileForeground((int) position.x);
+		if(object != null) {
+			mapLines.get((int) position.y).setTileForeground((int) position.x, null);
+			return;
 		}
-		return object.getSprite(stateTime);
+		mapLines.get((int) position.y).setTileBackground((int) position.x, null);
 	}
 
 	public Array<Vector2> getPath(Vector2 origin, Vector2 target) {
@@ -459,7 +635,7 @@ public class GMap {
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
 			for(int j = 0; j < GConfig.GENERATION_WIDTH; j++) {
 				Vector2 position = new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2)*GConfig.TILE_SPACING + j*GConfig.TILE_SPACING, i*GConfig.TILE_SPACING);
-				GObject object = null, object2 = null;
+				GTile object = null, object2 = null;
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80) {
 						amountDirt++;
@@ -467,7 +643,7 @@ public class GMap {
 					}
 					if(r.nextInt(100) < 5) {
 						amountGold++;
-						object2 = factory.newCoinBox(position, true);
+						object2 = factory.newCoinTile(position, true);
 					}
 					else {
 						amountDirt++;
@@ -480,7 +656,7 @@ public class GMap {
 						object = factory.newDirt(position, false);
 					}
 					amountGold++;
-					object2 = factory.newCoinBox(position, true);
+					object2 = factory.newCoinTile(position, true);
 				}
 				else if(initialMap[i][j] == iron) {
 					if(r.nextInt(100) < 80) {
@@ -496,9 +672,9 @@ public class GMap {
 				}
 				
 				if(object != null)
-					insertElement(object, new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2) + j, i), true);
+					insertTile(object, new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2) + j, i), true);
 				if(object2 != null)
-					insertElement(object2, new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2) + j, i), false);
+					insertTile(object2, new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2) + j, i), false);
 			}
 		}
 		System.out.println("Iron (" + amountIron + "), Gold (" + amountGold + "), Dirt (" + amountDirt + ")");
@@ -562,7 +738,7 @@ public class GMap {
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
 			for(int j = 0; j < GConfig.GENERATION_WIDTH; j++) {
 				Vector2 position = new Vector2(j*GConfig.TILE_SPACING, i*GConfig.TILE_SPACING);
-				GObject object = null, object2 = null;
+				GTile object = null, object2 = null;
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80)
 						object = factory.newDirt(position, false);
@@ -571,7 +747,7 @@ public class GMap {
 				else if(initialMap[i][j] == gold) {
 					if(r.nextInt(100) < 80)
 						object = factory.newDirt(position, false);
-					object2 = factory.newCoinBox(position, true);
+					object2 = factory.newCoinTile(position, true);
 				}
 				else if(initialMap[i][j] == iron) {
 					object = factory.newIron(position, false);
@@ -582,29 +758,10 @@ public class GMap {
 				}
 				
 				if(object != null)
-					insertElement(object, new Vector2(j, i), true);
+					insertTile(object, new Vector2(j, i), true);
 				if(object2 != null)
-					insertElement(object2, new Vector2(j, i), false);
+					insertTile(object2, new Vector2(j, i), false);
 			}
 		}
-	}
-	
-	/**
-	 * Insert a line on the top of the current map information
-	 * @param mapLine
-	 */
-	public void insertGMapLine(GMapLine mapLine) {
-		mapLines.add(mapLine);
-	}
-	
-	/**
-	 * Return a line on the y coordinate
-	 * @param y is the height
-	 * @return the line if it there is information, null otherwise
-	 */
-	public GMapLine getMapLine(int y) {
-		if(y < mapLines.size())
-			return mapLines.get(y);
-		return null;
 	}
 }

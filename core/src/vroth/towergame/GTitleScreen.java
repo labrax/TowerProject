@@ -15,9 +15,9 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 import vroth.towergame.gmap.GMap;
-import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GPlayer;
+import vroth.towergame.gobject.GTile;
 import vroth.towergame.gutil.GResourcesLoader;
 
 public class GTitleScreen implements IScreen {
@@ -46,12 +46,12 @@ public class GTitleScreen implements IScreen {
 	public GTitleScreen(TowerGame caller) {
 		this.caller = caller;
 		
-		titleFont = GResourcesLoader.getResourcesLoader().getFont("kenpixel_blocks.fnt");
+		titleFont = GResourcesLoader.getInstance().getFont("kenpixel_blocks.fnt");
 		titleFont.getData().setScale(0.9f);
 		titleFont.setColor(new Color(0, 0, 0, 1));
 		titleLayout = new GlyphLayout(titleFont, GConfig.GAME_NAME);
 		
-		startFont = GResourcesLoader.getResourcesLoader().getFont("kenpixel_blocks.fnt");
+		startFont = GResourcesLoader.getInstance().getFont("kenpixel_blocks.fnt");
 		startFont.getData().setScale(0.6f);
 	}
 	
@@ -83,15 +83,15 @@ public class GTitleScreen implements IScreen {
 		map.generateMapV2();
 		
 		//2 tiles down
-		if(map.getSprite(0, GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1, true) == null) {
-			GObject object = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT-1)*GConfig.TILE_SPACING), false);
-			map.insertElement(object, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1), true);
+		if(map.getForegroundObject(new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1)) == null) {
+			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT-1)*GConfig.TILE_SPACING), false);
+			map.insertTile(tile, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1), true);
 		}
 		
 		//1 tiles down
-		if(map.getSprite(0, GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT, true) == null) {
-			GObject object = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT)*GConfig.TILE_SPACING), false);
-			map.insertElement(object, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT), true);
+		if(map.getForegroundObject(new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT)) == null) {
+			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT)*GConfig.TILE_SPACING), false);
+			map.insertTile(tile, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT), true);
 		}
 		
 		player = factory.newPlayer("p1/", new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING));
