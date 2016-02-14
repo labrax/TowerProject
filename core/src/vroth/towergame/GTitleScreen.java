@@ -85,13 +85,13 @@ public class GTitleScreen implements IScreen {
 		
 		//2 tiles down
 		if(map.getForegroundObject(new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1)) == null) {
-			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT-1)*GConfig.TILE_SPACING), false);
+			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT-1)*GConfig.TILE_SPACING), false, 0);
 			map.insertTile(tile, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1), true);
 		}
 		
 		//1 tiles down
 		if(map.getForegroundObject(new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT)) == null) {
-			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT)*GConfig.TILE_SPACING), false);
+			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT)*GConfig.TILE_SPACING), false, 0);
 			map.insertTile(tile, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT), true);
 		}
 		

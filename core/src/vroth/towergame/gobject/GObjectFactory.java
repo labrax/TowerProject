@@ -126,10 +126,10 @@ public class GObjectFactory {
 				
 		shape.dispose();
 		
-		return new GPlayer(fixture, body, duck, front, hurt, dead, jump, stand, walk, swim, climb, fly, badge1, badge2, dimension); 
+		return new GPlayer(fixture, body, duck, front, hurt, dead, jump, stand, walk, swim, climb, fly, badge1, badge2, dimension, 0); 
 	}
 	
-	public GCreature newCreature(String folder, Vector2 position, int health, boolean walks, boolean flies) {
+	public GCreature newCreature(String folder, Vector2 position, int health, boolean walks, boolean flies, float creationTime) {
 		Body body = world.createBody(newBodyDef(BodyDef.BodyType.DynamicBody, position));
 		
 		GResourcesLoader rl = GResourcesLoader.getInstance();
@@ -160,13 +160,13 @@ public class GObjectFactory {
 				
 		shape.dispose();
 		
-		GCreature creature = new GCreature(fixture, body, null, null, null, null, null, dead, walk, null, null, fly, null, null, dimension, health, health);
+		GCreature creature = new GCreature(fixture, body, null, null, null, null, null, dead, walk, null, null, fly, null, null, dimension, health, health, creationTime);
 		if(flies)
 			creature.setFly();
 		return creature;
 	}
 	
-	private GTile newTile(String filePrefix, Vector2 position, int health) {
+	private GTile newTile(String filePrefix, Vector2 position, int health, float creationTime) {
 		Body body = world.createBody(newBodyDef(BodyType.StaticBody, position));
 		
 		Sprite[] sprites = new Sprite[16];
@@ -183,7 +183,7 @@ public class GObjectFactory {
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GTile(fixture, body, sprites, dimension, health);
+		return new GTile(fixture, body, sprites, dimension, health, creationTime);
 	}
 	
 	/*private GObject newStaticObject(String file, Vector2 position, int health) {
@@ -203,7 +203,7 @@ public class GObjectFactory {
 		return new GObject(fixture, body, staticSprite, dimension, health, health);
 	}*/
 	
-	private GObject newItem(String file, Vector2 position, int health) {
+	private GObject newItem(String file, Vector2 position, int health, float creationTime) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
 		Sprite staticSprite = GResourcesLoader.getInstance().loadSprite(file);
@@ -217,10 +217,10 @@ public class GObjectFactory {
         body.setFixedRotation(true);
         shape.dispose();
         
-		return new GObject(fixture, body, staticSprite, dimension, health, health);
+		return new GObject(fixture, body, staticSprite, dimension, health, health, creationTime);
 	}
 	
-	private GObjectResource newSmallResource(String file, Vector2 position, Vector2 velocity) {
+	private GObjectResource newSmallResource(String file, Vector2 position, Vector2 velocity, float creationTime) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
 		Sprite staticSprite = GResourcesLoader.getInstance().loadSprite(file);
@@ -237,10 +237,10 @@ public class GObjectFactory {
         body.setLinearVelocity(velocity);
         body.setFixedRotation(true);
         
-		return new GObjectResource(fixture, body, staticSprite, dimension, 35);
+		return new GObjectResource(fixture, body, staticSprite, dimension, 35, creationTime);
 	}
 	
-	private GObjectResource newCoin(String file, Vector2 position, Vector2 velocity) {
+	private GObjectResource newCoin(String file, Vector2 position, Vector2 velocity, float creationTime) {
 		Body body = world.createBody(newBodyDef(BodyType.DynamicBody, position));
 		
 		Sprite staticSprite = GResourcesLoader.getInstance().loadSprite(file);
@@ -258,7 +258,7 @@ public class GObjectFactory {
         body.setLinearVelocity(velocity);
         body.setFixedRotation(true);
         
-		return new GObjectResource(fixture, body, staticSprite, dimension, 25);
+		return new GObjectResource(fixture, body, staticSprite, dimension, 25, creationTime);
 	}
 	
 	private void setBackground(GObject tile) {
@@ -282,64 +282,64 @@ public class GObjectFactory {
 		object.fixture.setFilterData(filter);
 	}
 	
-	public GTile newDirt(Vector2 position, boolean background) {
-		GTile newDirt = newTile("tiles/grass", position, 30);
+	public GTile newDirt(Vector2 position, boolean background, float creationTime) {
+		GTile newDirt = newTile("tiles/grass", position, 30, creationTime);
 		if(background)
 			setBackground(newDirt);
 		newDirt.setType(GConfig.dirt);
 		return newDirt;
 	}
 	
-	public GTile newWater() {
-		GTile newWater = newTile("tiles/lava", new Vector2(0, 0), 1);
+	public GTile newWater(float creationTime) {
+		GTile newWater = newTile("tiles/lava", new Vector2(0, 0), 1, creationTime);
 		setBackground(newWater);
 		newWater.setType(GConfig.water);
 		return newWater;
 	}
 	
-	public GTile newIron(Vector2 position, boolean background) {
-		GTile newIron = newTile("tiles/grass", position, 50);
+	public GTile newIron(Vector2 position, boolean background, float creationTime) {
+		GTile newIron = newTile("tiles/grass", position, 50, creationTime);
 		if(background)
 			setBackground(newIron);
 		newIron.setType(GConfig.iron);
 		return newIron;
 	}
 	
-	public GTile newHouse(Vector2 position, boolean background) {
-		GTile newHouse = newTile("tiles/houseBeige", position, 100);
+	public GTile newHouse(Vector2 position, boolean background, float creationTime) {
+		GTile newHouse = newTile("tiles/houseBeige", position, 100, creationTime);
 		if(background)
 			setBackground(newHouse);
 		newHouse.setType(GConfig.house);
 		return newHouse;
 	}
 	
-	public GTile newCastle(Vector2 position, boolean background) {
-		GTile newHouse = newTile("tiles/castle", position, 100);
+	public GTile newCastle(Vector2 position, boolean background, float creationTime) {
+		GTile newHouse = newTile("tiles/castle", position, 100, creationTime);
 		if(background)
 			setBackground(newHouse);
 		newHouse.setType(GConfig.castle);
 		return newHouse;
 	}
 	
-	public GObject newLadder(Vector2 position) {
-		GObject newLadder = newTile("items/ladder/ladder", position, 25);
+	public GObject newLadder(Vector2 position, float creationTime) {
+		GObject newLadder = newTile("items/ladder/ladder", position, 25, creationTime);
 		newLadder.setType(GConfig.ladder);
 		return newLadder;
 	}
 	
-	public GTile newCoinTile(Vector2 position, boolean background) {
-		GTile coinBox = newTile("tiles/grass", position, 80);
+	public GTile newCoinTile(Vector2 position, boolean background, float creationTime) {
+		GTile coinBox = newTile("tiles/grass", position, 80, creationTime);
 		if(background)
 			setBackground(coinBox);
 		coinBox.setType(GConfig.gold);
 		return coinBox;
 	}
 	
-	public GObject newBox(Vector2 position) {
-		return newItem("tiles/boxCoin.png", position, 5);
+	public GObject newBox(Vector2 position, float creationTime) {
+		return newItem("tiles/boxCoin.png", position, 5, creationTime);
 	}
 	
-	public Array<GObject> newCoins(Vector2 basePosition) {
+	public Array<GObject> newCoins(Vector2 basePosition, float creationTime) {
 		Random r = new Random();
 		Array<GObject> objects = new Array<GObject>();
 		int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN; 
@@ -358,39 +358,51 @@ public class GObjectFactory {
 			}
 			String file = gDatabase.getItemToFile(type);
 			Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*5 : r.nextFloat()*-5, r.nextBoolean() ? r.nextFloat()*5 : r.nextFloat()*-5);
-			GObjectResource resource = newCoin(file, basePosition, velocity);
+			GObjectResource resource = newCoin(file, basePosition, velocity, creationTime);
 			resource.setType(type);
 			objects.add(resource);
 		}
 		return objects;
 	}
 	
-	public Array<GObject> newResource(int type, Vector2 basePosition) {
+	public Array<GObject> newResource(int type, Vector2 basePosition, float creationTime) {
 		Array<GObject> objects = new Array<GObject>();
 		Random r = new Random();
 		
-		if(type == GConfig.house || type == GConfig.castle)
-			type = GConfig.iron;
-		
 		switch(type) {
 			case GConfig.gold:
-				return newCoins(basePosition);
-			case GConfig.dirt:
-			case GConfig.iron:
-				String file = gDatabase.getItemToFile(type);
-				int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN;
-				for(int i = 0; i < resources; i++) {
+				return newCoins(basePosition, creationTime);
+			case GConfig.castle:
+			case GConfig.grass:
+			case GConfig.house:
+				{
+					String file = gDatabase.getItemToFile(type);
 					Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
-					GObjectResource resource = newSmallResource(file, basePosition, velocity);
+					GObjectResource resource = newSmallResource(file, basePosition, velocity, creationTime);
 					resource.setType(type);
 					objects.add(resource);
 				}
 				return objects;
+			case GConfig.dirt:
+			case GConfig.iron:
+				{
+					String file = gDatabase.getItemToFile(type);
+					int resources = r.nextInt(GConfig.MAX_RESOURCE_RESPAWN) + GConfig.MIN_RESOURCE_RESPAWN;
+					for(int i = 0; i < resources; i++) {
+						Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
+						GObjectResource resource = newSmallResource(file, basePosition, velocity, creationTime);
+						resource.setType(type);
+						objects.add(resource);
+					}
+				}
+				return objects;
 			case GConfig.ladder:
-				Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
-				GObjectResource resource = newSmallResource(gDatabase.getItemToFile(type), basePosition, velocity);
-				resource.setType(type);
-				objects.add(resource);
+				{
+					Vector2 velocity = new Vector2(r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10, r.nextBoolean() ? r.nextFloat()*10 : r.nextFloat()*-10);
+					GObjectResource resource = newSmallResource(gDatabase.getItemToFile(type), basePosition, velocity, creationTime);
+					resource.setType(type);
+					objects.add(resource);
+				}
 				return objects;
 			default:
 				break;

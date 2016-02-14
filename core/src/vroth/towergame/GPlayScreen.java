@@ -31,7 +31,7 @@ public class GPlayScreen implements IScreen {
 	float refX, refY;
 	
 	private Vector2 mousePosition, pointerPosition;
-	private int clickPointer, clickButton;
+	private int clickButton;
 	private int cursorSelection = 0;
 	private boolean isClicking = false;
 	
@@ -65,77 +65,81 @@ public class GPlayScreen implements IScreen {
 		loadCursor();
 	}
 	
-	public void update(float deltaTime) {
-		world.step(deltaTime, 6, 2);
-		stateTime += deltaTime;
-		
-		if(player.getBody().getLinearVelocity().x != 0 || player.getBody().getLinearVelocity().y != 0)
-			updateMouse();
-		if(isClicking && clickButton == 0) {
-			GObject object = gameMap.getObject(pointerPosition);
-			if(object != null) {
-				int objectType = object.getType();
-				float hp = object.hit(player.getDamage() * deltaTime);
-				if(hp < 0) {
-					Array<GObject> newObjects = GObjectFactory.getInstance(world).newResource(objectType, new Vector2(object.getBody().getPosition().x + object.getDimension().x/2, object.getBody().getPosition().y + object.getDimension().y/2));
-					for(GObject o : newObjects)
+	private void leftClick(float stateTime, float deltaTime) {
+		GObject object = gameMap.getObject(pointerPosition);
+		if(object != null) {
+			int objectType = object.getType();
+			float hp = object.hit(player.getDamage() * deltaTime);
+			if(hp < 0) {
+				Array<GObject> newObjects = GObjectFactory.getInstance(world).newResource(objectType, new Vector2(object.getBody().getPosition().x + object.getDimension().x/2, object.getBody().getPosition().y + object.getDimension().y/2), stateTime);
+				for(GObject o : newObjects) {
+					if(gameObjects.size < GConfig.MAX_RESOURCES_ON_GAME)
 						gameObjects.add(o);
-					
-					//TODO: fix bug
-					/*Filter filter = object.fixture.getFilterData(); 
-					filter.categoryBits = GConfig.CATEGORY_BTILE;
-					filter.maskBits = GConfig.MASK_NO_TOUCH;
-					object.fixture.setFilterData(filter);
-					world.step(0, 0, 0);*/
-					
-					//player.getBody().applyForceToCenter(new Vector2(GConfig.SPEED_WALK*(object.getCenter().x-player.getCenter().x), GConfig.FORCE_UP*(object.getCenter().y-player.getCenter().y)), true);
-					world.destroyBody(object.getBody());
-					gameMap.destroyObject(pointerPosition);
+					else {
+						world.destroyBody(o.getBody());
+					}
 				}
-			}
-		}
-		else if(isClicking && clickButton == 1) {
-			boolean built = false;
-			GObject object = null;
-			int type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
-			switch(type) {
-				case GConfig.ladder:
-					object = GObjectFactory.getInstance(world).newLadder(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70));
-					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-						built = gameMap.insertObject(object, pointerPosition);
-					else if(gameMap.getForegroundObject(pointerPosition) != null && gameMap.getForegroundObject(pointerPosition).getType() == GConfig.castle)
-						built = gameMap.insertObject(object, pointerPosition);
-					break;
-				case GConfig.dirt:
-					object = GObjectFactory.getInstance(world).newDirt(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
-					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-						built = gameMap.insertTile((GTile) object, pointerPosition);
-					break;
-				case GConfig.castle:
-					object = GObjectFactory.getInstance(world).newCastle(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
-					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-						built = gameMap.insertTile((GTile) object, pointerPosition);
-					break;
-				default:
-					break;
-			}
-			if(object != null && built == false)
+				
+				//TODO: fix bug
+				/*Filter filter = object.fixture.getFilterData(); 
+				filter.categoryBits = GConfig.CATEGORY_BTILE;
+				filter.maskBits = GConfig.MASK_NO_TOUCH;
+				object.fixture.setFilterData(filter);
+				world.step(0, 0, 0);*/
+				
+				//player.getBody().applyForceToCenter(new Vector2(GConfig.SPEED_WALK*(object.getCenter().x-player.getCenter().x), GConfig.FORCE_UP*(object.getCenter().y-player.getCenter().y)), true);
 				world.destroyBody(object.getBody());
-			if(object != null && object.getType() != GConfig.dirt)
-				GObjectFactory.getInstance(world).setBuilding(object);
-			//System.out.println(built);
+				gameMap.destroyObject(pointerPosition);
+			}
 		}
-		
-		//player bellow water line
-		if(player.getBody().getPosition().y < 0) {
-			player.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
+	}
+	
+	private void rightClick(float stateTime) {
+		boolean built = false;
+		GObject object = null;
+		int type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
+		switch(type) {
+			case GConfig.ladder:
+				object = GObjectFactory.getInstance(world).newLadder(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), stateTime);
+				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+					built = gameMap.insertObject(object, pointerPosition);
+				else if(gameMap.getForegroundObject(pointerPosition) != null && gameMap.getForegroundObject(pointerPosition).getType() == GConfig.castle)
+					built = gameMap.insertObject(object, pointerPosition);
+				break;
+			case GConfig.grass:
+				object = GObjectFactory.getInstance(world).newDirt(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false, stateTime);
+				object.setType(GConfig.grass);
+				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+					built = gameMap.insertTile((GTile) object, pointerPosition);
+				break;
+			case GConfig.castle:
+				object = GObjectFactory.getInstance(world).newCastle(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false, stateTime);
+				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+					built = gameMap.insertTile((GTile) object, pointerPosition);
+				break;
+			case GConfig.house:
+				object = GObjectFactory.getInstance(world).newHouse(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false, stateTime);
+				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+					built = gameMap.insertTile((GTile) object, pointerPosition);
+				break;
+			default:
+				break;
 		}
-		player.update(stateTime, deltaTime);
-		
-		//iterate through objects
+		if(object != null && built == false)
+			world.destroyBody(object.getBody());
+		if(object != null && object.getType() != GConfig.grass)
+			GObjectFactory.getInstance(world).setBuilding(object);
+		//System.out.println(built);
+	}
+	
+	private void iterateObjects(float stateTime, float deltaTime) {
 		for(GObject o : gameObjects) {
+			/*if(o.getCreationTime() + GConfig.ON_GAME_RESOURCE_TIME < stateTime) {
+				world.destroyBody(o.getBody());
+				gameObjects.removeValue(o, true);
+			}
 			//object bellow water line
-			if(o.getBody().getPosition().y < 0) {
+			else */if(o.getBody().getPosition().y < 0) {
 				float hp = o.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
 				if(hp < 0) {
 					world.destroyBody(o.getBody());
@@ -162,15 +166,9 @@ public class GPlayScreen implements IScreen {
 				}
 			}
 		}
-		
-		for(GCreature c : creaturesToRemove) {
-			if(c != player)
-				world.destroyBody(c.getBody());
-			gameCreatures.removeValue(c, true);
-		}
-		
-		creaturesToRemove.clear();
-		
+	}
+	
+	public void iterateCreatures(float deltaTime) {
 		for(GCreature c : gameCreatures) {
 			if(c.getBody().getPosition().y < 0) {
 				c.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
@@ -178,6 +176,34 @@ public class GPlayScreen implements IScreen {
 			c.setGoal(player.getCenter());
 			c.update(stateTime, deltaTime);
 		}
+	}
+	
+	public void update(float deltaTime) {
+		world.step(deltaTime, 6, 2);
+		stateTime += deltaTime;
+		
+		if(player.getBody().getLinearVelocity().x != 0 || player.getBody().getLinearVelocity().y != 0)
+			updateMouse();
+		if(isClicking && clickButton == 0) {
+			leftClick(stateTime, deltaTime);
+		}
+		else if(isClicking && clickButton == 1) {
+			rightClick(stateTime);
+		}
+		
+		player.update(stateTime, deltaTime);
+		
+		iterateObjects(stateTime, deltaTime);
+		
+		//check if there is any creature to remove
+		for(GCreature c : creaturesToRemove) {
+			if(c != player)
+				world.destroyBody(c.getBody());
+			gameCreatures.removeValue(c, true);
+		}
+		creaturesToRemove.clear();
+		
+		iterateCreatures(deltaTime);
 		
 		if(GConfig.DEBUG_CONTROLS)
 			refPosition = new Vector2(refX, refY);
@@ -261,19 +287,19 @@ public class GPlayScreen implements IScreen {
 		}
 		
 		if(keycode == Input.Keys.G) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/ghost/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/ghost/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.B) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bee/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bee/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.A) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bat/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bat/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.F) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/fly/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/fly/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.P) {
@@ -316,7 +342,6 @@ public class GPlayScreen implements IScreen {
 
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		isClicking = true;
-		clickPointer = pointer;
 		clickButton = button;
 		return true;
 	}
@@ -328,7 +353,6 @@ public class GPlayScreen implements IScreen {
 
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		isClicking = true;
-		clickPointer = pointer;
 		mouseMoved(screenX, screenY);
 		return true;
 	}

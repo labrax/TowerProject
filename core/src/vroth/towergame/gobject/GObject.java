@@ -16,14 +16,20 @@ public class GObject {
 	protected float health;
 	protected int type = 0;
 	protected float damage = GConfig.DAMAGE;
+	protected float creationTime;
 	
-	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health, float maxHealth) {
+	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health, float maxHealth, float creationTime) {
 		this.fixture = fixture;
 		this.body = body;
 		this.staticSprite = staticSprite;
 		this.dimension = dimension;
 		this.health = health;
 		this.maxHealth = maxHealth;
+		this.creationTime = creationTime;
+	}
+	
+	public float getCreationTime() {
+		return creationTime;
 	}
 	
 	public float getDamage() {

@@ -1,6 +1,7 @@
 package vroth.towergame.gutil;
 
 import java.util.HashMap;
+import java.util.Random;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -8,6 +9,8 @@ import com.badlogic.gdx.utils.Array;
 import vroth.towergame.gobject.GPlayer;
 
 public class GDatabase {
+	private Random random;
+	
 	public static GDatabase instance = null;
 	private HashMap<Integer, String> itemsToFile;
 	private Array<Integer> itemsToFileRegister;
@@ -20,6 +23,7 @@ public class GDatabase {
 	private HashMap<String, Vector2> stateToRefVector;
 	
 	private GDatabase() {
+		random = new Random();
 		createItemToFile();
 		createElementToFile();
 		createStateToRefVector();
@@ -30,6 +34,10 @@ public class GDatabase {
 		if(instance == null)
 			instance = new GDatabase();
 		return instance;
+	}
+	
+	public Random getRandom() {
+		return random;
 	}
 	
 	private void createItemToFileAux(Integer item, String file) {
@@ -45,7 +53,10 @@ public class GDatabase {
 		createItemToFileAux(0x20, "items/coinBronze.png");
 		createItemToFileAux(0x21, "items/coinSilver.png");
 		createItemToFileAux(0x22, "items/coinGold.png");
-		createItemToFileAux(0xFF, "items/ladder/ladder.png");
+		createItemToFileAux(0xC0, "items/grass.png");
+		createItemToFileAux(0xD0, "items/castle.png");
+		createItemToFileAux(0xE0, "items/houseBeige.png");
+		createItemToFileAux(0xFF, "items/ladder.png");
 	}
 	
 	public String getItemToFile(Integer type) {
@@ -90,10 +101,12 @@ public class GDatabase {
 		itemsToCursor = new HashMap<Integer, String>();
 		itemsToCursorRegister = new Array<Integer>();
 		createItemToCursorAux(0x0, "cursor/pickaxeCursor.png");
-		createItemToCursorAux(0x1, "cursor/grass.png");
+		//createItemToCursorAux(0x1, "cursor/grass.png");
 		//createItemToCursorAux(0x10, "cursor/houseBeige.png");
+		createItemToCursorAux(0xC0, "cursor/grass.png");
 		createItemToCursorAux(0xD0, "cursor/castle.png");
-		createItemToCursorAux(0xFE, "cursor/swordCursor.png");
+		createItemToCursorAux(0xE0, "cursor/houseBeige.png");
+		//createItemToCursorAux(0xFE, "cursor/swordCursor.png");
 		createItemToCursorAux(0xFF, "cursor/ladder.png");
 	}
 	

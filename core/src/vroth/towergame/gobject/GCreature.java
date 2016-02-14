@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.Fixture;
 
 import vroth.towergame.GConfig;
 import vroth.towergame.TowerGame;
+import vroth.towergame.gutil.GDatabase;
 import vroth.towergame.gutil.GResourcesLoader;
 
 public class GCreature extends GObject {
@@ -33,8 +34,8 @@ public class GCreature extends GObject {
 	
 	protected boolean flies = false;
 	
-	public GCreature(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Sprite dead, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension, int health, int maxHealth) {
-		super(fixture, body, front, dimension, health, maxHealth);
+	public GCreature(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Sprite dead, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension, int health, int maxHealth, float creationTime) {
+		super(fixture, body, front, dimension, health, maxHealth, creationTime);
 		
 		this.isDucking = false;
 		this.isHurt = false;
@@ -128,12 +129,13 @@ public class GCreature extends GObject {
 	}
 	
 	private void applyHurt() {
-		if(!flies)
+		if(!flies) {
 			setState(stateTime, STATE.DAMAGE);
-		if(goRight)
-			setVelocity(new Vector2(-50f, 50f));
-		else
-			setVelocity(new Vector2(50f, 50f));
+			if(goRight)
+				setVelocity(new Vector2(-50f, 50f));
+			else
+				setVelocity(new Vector2(50f, 50f));
+		}
 	}
 	
 	
@@ -317,6 +319,11 @@ public class GCreature extends GObject {
 		else
 			updateNoFlies(stateTime, deltaTime);
 		
+		//creature bellow water
+		if(getBody().getPosition().y < 10) {
+			hit(deltaTime*GDatabase.getInstance().getRandom().nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
+		}
+		
 		isHurt = false;
 		
 		Vector2 velocity = body.getLinearVelocity();
@@ -336,11 +343,11 @@ public class GCreature extends GObject {
 	public void setGoal(Vector2 target) {
 		Vector2 source = getCenter();
 		Vector2 movement = new Vector2(target.x - source.x, target.y - source.y);
-		if(greaterThanZero(movement.x/1000)) {
+		if(greaterThanZero(movement.x/100)) {
 			keyRight = true;
 			keyLeft = false;
 		}
-		else if(lessThanZero(movement.y/1000)){
+		else if(lessThanZero(movement.y/100)){
 			keyRight = false;
 			keyLeft = true;
 		}
@@ -349,11 +356,11 @@ public class GCreature extends GObject {
 			keyLeft = false;
 		}
 		
-		if(greaterThanZero(movement.y/1000)) {
+		if(greaterThanZero(movement.y/100)) {
 			keyUp = true;
 			keyDown = false;
 		}
-		else if(lessThanZero(movement.y/1000)){
+		else if(lessThanZero(movement.y/100)){
 			keyUp = false;
 			keyDown = true;
 		}

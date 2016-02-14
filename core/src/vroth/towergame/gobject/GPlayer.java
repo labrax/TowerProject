@@ -20,8 +20,8 @@ public class GPlayer extends GCreature {
 	private BitmapFont itemFont;
 	private GlyphLayout itemLayout;
 	
-	protected GPlayer(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite dead, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension) {
-		super(fixture, body, duck, front, hurt, jump, stand, dead, walk, swim, climb, fly, badge1, badge2, dimension, GConfig.PLAYER_HEALTH, GConfig.PLAYER_HEALTH);
+	protected GPlayer(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite dead, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension, float creationTime) {
+		super(fixture, body, duck, front, hurt, jump, stand, dead, walk, swim, climb, fly, badge1, badge2, dimension, GConfig.PLAYER_HEALTH, GConfig.PLAYER_HEALTH, creationTime);
 
 		itemFont = GResourcesLoader.getInstance().getFont("kenpixel_blocks.fnt");
 		itemFont.getData().setScale(GConfig.PLAYER_ITEM_FONT_SIZE);

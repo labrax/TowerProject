@@ -39,7 +39,7 @@ public class GMap {
 	 */
 	public GMap(World world) {
 		factory = GObjectFactory.getInstance(world);
-		water = factory.newWater();
+		water = factory.newWater(0);
 		ironSprite = GResourcesLoader.getInstance().loadSprite("resource/stoneCoal.png");
 		coinSprite = GResourcesLoader.getInstance().loadSprite("resource/coins.png");
 		mapLines = new ArrayList<GMapLine>();
@@ -639,36 +639,36 @@ public class GMap {
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80) {
 						amountDirt++;
-						object = factory.newDirt(position, false);
+						object = factory.newDirt(position, false, 0);
 					}
 					if(r.nextInt(100) < 5) {
 						amountGold++;
-						object2 = factory.newCoinTile(position, true);
+						object2 = factory.newCoinTile(position, true, 0);
 					}
 					else {
 						amountDirt++;
-						object2 = factory.newDirt(position, true);
+						object2 = factory.newDirt(position, true, 0);
 					}
 				}
 				else if(initialMap[i][j] == gold) {
 					if(r.nextInt(100) < 80) {
 						amountDirt++;
-						object = factory.newDirt(position, false);
+						object = factory.newDirt(position, false, 0);
 					}
 					amountGold++;
-					object2 = factory.newCoinTile(position, true);
+					object2 = factory.newCoinTile(position, true, 0);
 				}
 				else if(initialMap[i][j] == iron) {
 					if(r.nextInt(100) < 80) {
 						amountIron++;
-						object = factory.newIron(position, false);
+						object = factory.newIron(position, false, 0);
 					}
 					else if(r.nextInt(100) < 90) {
 						amountDirt++;
-						object = factory.newDirt(position, false);
+						object = factory.newDirt(position, false, 0);
 					}
 					amountIron++;
-					object2 = factory.newIron(position, true);
+					object2 = factory.newIron(position, true, 0);
 				}
 				
 				if(object != null)
@@ -741,20 +741,20 @@ public class GMap {
 				GTile object = null, object2 = null;
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80)
-						object = factory.newDirt(position, false);
-					object2 = factory.newDirt(position, true);
+						object = factory.newDirt(position, false, 0);
+					object2 = factory.newDirt(position, true, 0);
 				}
 				else if(initialMap[i][j] == gold) {
 					if(r.nextInt(100) < 80)
-						object = factory.newDirt(position, false);
-					object2 = factory.newCoinTile(position, true);
+						object = factory.newDirt(position, false, 0);
+					object2 = factory.newCoinTile(position, true, 0);
 				}
 				else if(initialMap[i][j] == iron) {
-					object = factory.newIron(position, false);
-					object2 = factory.newIron(position, true);
+					object = factory.newIron(position, false, 0);
+					object2 = factory.newIron(position, true, 0);
 				}
 				else {
-					object2 = factory.newDirt(position, true);
+					object2 = factory.newDirt(position, true, 0);
 				}
 				
 				if(object != null)
