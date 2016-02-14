@@ -15,6 +15,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 import vroth.towergame.gmap.GMap;
+import vroth.towergame.gobject.GCreature;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GPlayer;
 import vroth.towergame.gobject.GTile;
@@ -205,6 +206,12 @@ public class GTitleScreen implements IScreen {
 		GConfig.GENERATION_TRIES = bTries;
 		GConfig.MAX_JUMP = bAmountJump;
 		GConfig.DRAW_PLAYER_HEALTH = true;
+	}
+
+	@Override
+	public void setCreatureForRemoval(GCreature creature) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

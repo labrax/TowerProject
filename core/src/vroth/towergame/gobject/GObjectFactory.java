@@ -84,6 +84,7 @@ public class GObjectFactory {
 		Sprite hurt = rl.loadSprite(folder + "hurt.png");
 		Sprite jump = rl.loadSprite(folder + "jump.png");
 		Sprite stand = rl.loadSprite(folder + "stand.png");
+		Sprite dead = rl.loadSprite(folder + "dead.png");
 		
 		Array<Sprite> walkArray = new Array<Sprite>();
 		walkArray.add(rl.loadSprite(folder + "walk01.png"));
@@ -112,6 +113,8 @@ public class GObjectFactory {
 		climbArray.add(rl.loadSprite(folder + "climb2.png"));
 		Animation climb = new Animation(0.2f, climbArray);
 		
+		Animation fly = new Animation(0.2f, climbArray);
+		
 		//the players shape is a little smaller to enable falling in 1 tile holes
 		PolygonShape shape = new PolygonShape();
 		shape.setAsBox(front.getWidth()/3, front.getHeight()/2, new Vector2(front.getWidth()/2, front.getHeight()/2), 0);
@@ -123,7 +126,44 @@ public class GObjectFactory {
 				
 		shape.dispose();
 		
-		return new GPlayer(fixture, body, duck, front, hurt, jump, stand, walk, swim, climb, badge1, badge2, dimension); 
+		return new GPlayer(fixture, body, duck, front, hurt, dead, jump, stand, walk, swim, climb, fly, badge1, badge2, dimension); 
+	}
+	
+	public GCreature newCreature(String folder, Vector2 position, int health, boolean walks, boolean flies) {
+		Body body = world.createBody(newBodyDef(BodyDef.BodyType.DynamicBody, position));
+		
+		GResourcesLoader rl = GResourcesLoader.getInstance();
+		Sprite dead = rl.loadSprite(folder + "dead.png");
+		
+		Array<Sprite> walkArray = new Array<Sprite>();
+		if(walks) {
+			walkArray.add(rl.loadSprite(folder + "walk1.png"));
+			walkArray.add(rl.loadSprite(folder + "walk2.png"));
+		}
+		Animation walk = new Animation(GConfig.ANIMATION_FRAME_TIME, walkArray);
+		
+		Array<Sprite> flyArray = new Array<Sprite>();
+		if(flies) {
+			flyArray.add(rl.loadSprite(folder + "fly1.png"));
+			flyArray.add(rl.loadSprite(folder + "fly2.png"));
+		}
+		Animation fly = new Animation(0.2f, flyArray);
+		
+		//the players shape is a little smaller to enable falling in 1 tile holes
+		PolygonShape shape = new PolygonShape();
+		shape.setAsBox(dead.getWidth()/3, dead.getHeight()/2, new Vector2(dead.getWidth()/2, dead.getHeight()/2), 0);
+		
+		Vector2 dimension = new Vector2(dead.getWidth(), dead.getHeight());
+		FixtureDef fixtureDef = newFixtureDef(shape, GConfig.CREATURE_DENSITY, 0, GConfig.CREATURE_FRICTION, GConfig.CATEGORY_MONSTER, GConfig.MASK_MONSTER);
+		Fixture fixture = body.createFixture(fixtureDef);
+        body.setFixedRotation(true);
+				
+		shape.dispose();
+		
+		GCreature creature = new GCreature(fixture, body, null, null, null, null, null, dead, walk, null, null, fly, null, null, dimension, health, health);
+		if(flies)
+			creature.setFly();
+		return creature;
 	}
 	
 	private GTile newTile(String filePrefix, Vector2 position, int health) {
@@ -232,6 +272,13 @@ public class GObjectFactory {
 		Filter filter = object.fixture.getFilterData(); 
 		filter.categoryBits = GConfig.CATEGORY_BUILDING;
 		filter.maskBits = GConfig.MASK_BUILDING;
+		object.fixture.setFilterData(filter);
+	}
+	
+	public void setCreature(GObject object) {
+		Filter filter = object.fixture.getFilterData(); 
+		filter.categoryBits = GConfig.CATEGORY_MONSTER;
+		filter.maskBits = GConfig.MASK_MONSTER;
 		object.fixture.setFilterData(filter);
 	}
 	

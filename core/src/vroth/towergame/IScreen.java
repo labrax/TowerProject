@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 
+import vroth.towergame.gobject.GCreature;
+
 public interface IScreen extends InputProcessor{
 	public void create(World world);
 	public void update(float deltaTime);
@@ -14,4 +16,5 @@ public interface IScreen extends InputProcessor{
 	public void pause();
 	public void resume();
 	public void dispose();
+	public void setCreatureForRemoval(GCreature creature);
 }

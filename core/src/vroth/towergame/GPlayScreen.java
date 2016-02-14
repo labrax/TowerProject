@@ -15,6 +15,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 import vroth.towergame.gmap.GMap;
+import vroth.towergame.gobject.GCreature;
 import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GObjectResource;
@@ -39,6 +40,8 @@ public class GPlayScreen implements IScreen {
 	private float stateTime;
 
 	private Array<GObject> gameObjects = null;
+	private Array<GCreature> gameCreatures = null;
+	private Array<GCreature> creaturesToRemove = null;
 	private GMap gameMap = null;
 	
 	private Random random;
@@ -51,6 +54,8 @@ public class GPlayScreen implements IScreen {
 		this.random = new Random();
 		
 		gameObjects = new Array<GObject>();
+		gameCreatures = new Array<GCreature>();
+		creaturesToRemove = new Array<GCreature>();
 		gameMap = new GMap(world);
 		gameMap.generateMapV2();
 		
@@ -71,7 +76,6 @@ public class GPlayScreen implements IScreen {
 			if(object != null) {
 				int objectType = object.getType();
 				float hp = object.hit(player.getDamage() * deltaTime);
-				//System.out.print(" " + hp);
 				if(hp < 0) {
 					Array<GObject> newObjects = GObjectFactory.getInstance(world).newResource(objectType, new Vector2(object.getBody().getPosition().x + object.getDimension().x/2, object.getBody().getPosition().y + object.getDimension().y/2));
 					for(GObject o : newObjects)
@@ -115,7 +119,7 @@ public class GPlayScreen implements IScreen {
 				default:
 					break;
 			}
-			if(built == false)
+			if(object != null && built == false)
 				world.destroyBody(object.getBody());
 			if(object != null && object.getType() != GConfig.dirt)
 				GObjectFactory.getInstance(world).setBuilding(object);
@@ -159,6 +163,22 @@ public class GPlayScreen implements IScreen {
 			}
 		}
 		
+		for(GCreature c : creaturesToRemove) {
+			if(c != player)
+				world.destroyBody(c.getBody());
+			gameCreatures.removeValue(c, true);
+		}
+		
+		creaturesToRemove.clear();
+		
+		for(GCreature c : gameCreatures) {
+			if(c.getBody().getPosition().y < 0) {
+				c.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
+			}
+			c.setGoal(player.getCenter());
+			c.update(stateTime, deltaTime);
+		}
+		
 		if(GConfig.DEBUG_CONTROLS)
 			refPosition = new Vector2(refX, refY);
 		else {
@@ -198,6 +218,11 @@ public class GPlayScreen implements IScreen {
 					batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);				
 			}
 		}
+		
+		for(GCreature c : gameCreatures) {
+			if(gameMap.isVisible(refPosition, c.getBody().getPosition(), c.getDimension()))
+				batch.draw(c.getSprite(stateTime), c.getBody().getPosition().x + drawReference.x, c.getBody().getPosition().y + drawReference.y);
+		}
 		batch.end();
 
 		if(GConfig.DEBUG_PHYSICS)
@@ -233,6 +258,38 @@ public class GPlayScreen implements IScreen {
 				refY = player.getBody().getPosition().y + player.getDimension().y/2;
 			}
 			GConfig.DEBUG_CONTROLS = !GConfig.DEBUG_CONTROLS;
+		}
+		
+		if(keycode == Input.Keys.G) {
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/ghost/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			gameCreatures.add(creature);
+		}
+		else if(keycode == Input.Keys.B) {
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bee/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			gameCreatures.add(creature);
+		}
+		else if(keycode == Input.Keys.A) {
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bat/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			gameCreatures.add(creature);
+		}
+		else if(keycode == Input.Keys.F) {
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/fly/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			gameCreatures.add(creature);
+		}
+		else if(keycode == Input.Keys.P) {
+			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p1/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
+			GObjectFactory.getInstance(world).setCreature(creature);
+			gameCreatures.add(creature);
+		}
+		else if(keycode == Input.Keys.O) {
+			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p2/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
+			GObjectFactory.getInstance(world).setCreature(creature);
+			gameCreatures.add(creature);
+		}
+		else if(keycode == Input.Keys.I) {
+			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p3/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
+			GObjectFactory.getInstance(world).setCreature(creature);
+			gameCreatures.add(creature);
 		}
 		
 		if(GConfig.DEBUG_CONTROLS) {
@@ -308,7 +365,7 @@ public class GPlayScreen implements IScreen {
 	public void loadCursor() {
 		//System.out.println(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection));
 		//System.out.println(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection)));
-		Cursor customCursor = Gdx.graphics.newCursor(GResourcesLoader.getInstance().loadPixmap(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection))), 16, 16);
+		Cursor customCursor = Gdx.graphics.newCursor(GResourcesLoader.getInstance().loadPixmap(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection))), 4, 0);
 		Gdx.graphics.setCursor(customCursor);
 		customCursor.dispose();
 	}
@@ -320,5 +377,9 @@ public class GPlayScreen implements IScreen {
 		cursorSelection = cursorSelection%GConfig.AMOUNT_ITEMS;
 		loadCursor();
 		return true;
+	}
+
+	public void setCreatureForRemoval(GCreature creature) {
+		creaturesToRemove.add(creature);
 	}
 }

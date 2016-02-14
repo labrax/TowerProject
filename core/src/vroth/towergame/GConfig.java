@@ -3,7 +3,7 @@ package vroth.towergame;
 import com.badlogic.gdx.graphics.Color;
 
 public class GConfig {
-	public static String GAME_NAME = "TowerProject";
+	public static final String GAME_NAME = "TowerProject";
 	
 	public static final String ASSET_PATH = "C:/Users/Victor/Desktop/assets/";
 
@@ -23,6 +23,8 @@ public class GConfig {
 	public static boolean DRAW_PLAYER_HEALTH = false;
 	public static final int PLAYER_HEALTH = 50;
 	public static int MAX_JUMP = 2;
+	public static final float PLAYER_ITEM_FONT_SIZE = 0.15f;
+	public static final int DEAD_TIME = 2;
 	
 	public static int MAP_WIDTH = 2*GENERATION_WIDTH;
 	
@@ -32,15 +34,21 @@ public class GConfig {
 	
 	public static Color BACKGROUND_COLOR = new Color(0.70f, 0.85f, 1.0f, 1.0f);
 	
-	public static float SCALING = 0.8f;
+	//TODO: implement
+	//public static float SCALING = 0.8f;
+	
+	public static float SPEED_FLY = (float) Math.pow(10, 32);
+	
+	public static float CREATURE_DENSITY = 500000f;
+	public static float CREATURE_FRICTION = 30f;
 	
 	public static float HURT_TIME = 0.8f;
 	public static float ANIMATION_FRAME_TIME = 0.1f;
 	public static float FORCE_UP = (float) Math.pow(10, 32);
 	public static float SPEED_WALK = (float) Math.pow(10, 14);
 	public static float EPSILON = 0.05f;
-	public static float PLAYER_DENSITY = 500000f;
-	public static float PLAYER_FRICTION = 30f;
+	public static float PLAYER_DENSITY = CREATURE_DENSITY;
+	public static float PLAYER_FRICTION = CREATURE_FRICTION;
 	
 	public static boolean DEBUG_PHYSICS = false;
 	public static boolean DEBUG_CONTROLS = false;
@@ -55,8 +63,8 @@ public class GConfig {
 	
 	public static final short MASK_NO_TOUCH = 0,
 			MASK_FTILE = -1 & (~CATEGORY_BTILE),
-			MASK_PLAYER = CATEGORY_FTILE | CATEGORY_MONSTER,
-			MASK_MONSTER = CATEGORY_BUILDING | CATEGORY_FTILE | CATEGORY_PLAYER,
+			MASK_PLAYER = CATEGORY_FTILE ,
+			MASK_MONSTER = CATEGORY_BUILDING | CATEGORY_FTILE,
 			MASK_ITEM = CATEGORY_FTILE,
 			MASK_BUILDING = CATEGORY_MONSTER,
 			MASK_ALL = -1;

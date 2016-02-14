@@ -10,14 +10,14 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 
 public class TowerGame extends ApplicationAdapter implements InputProcessor {
-	World world;
-	SpriteBatch batch;
-	OrthographicCamera camera;
-	Box2DDebugRenderer debugRenderer;
+	private World world;
+	private SpriteBatch batch;
+	private OrthographicCamera camera;
+	private Box2DDebugRenderer debugRenderer;
 	
-	GTitleScreen introScreen = null;
-	GPlayScreen playScreen = null;
-	IScreen currScreen;
+	private GTitleScreen introScreen = null;
+	private GPlayScreen playScreen = null;
+	public static IScreen currScreen;
 	
 	private boolean endTitle = false;
 	
