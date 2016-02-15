@@ -406,17 +406,17 @@ public class GPlayScreen implements IScreen {
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.B) {
-			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p1/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
+			GCreature creature = GObjectFactory.getInstance(world).newPlayerCreature("p1/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
 			GObjectFactory.getInstance(world).setCreature(creature);
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.N) {
-			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p2/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
+			GCreature creature = GObjectFactory.getInstance(world).newPlayerCreature("p2/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
 			GObjectFactory.getInstance(world).setCreature(creature);
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.M) {
-			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p3/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
+			GCreature creature = GObjectFactory.getInstance(world).newPlayerCreature("p3/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
 			GObjectFactory.getInstance(world).setCreature(creature);
 			gameCreatures.add(creature);
 		}

@@ -129,6 +129,60 @@ public class GObjectFactory {
 		return new GPlayer(fixture, body, duck, front, hurt, dead, jump, stand, walk, swim, climb, fly, badge1, badge2, dimension); 
 	}
 	
+	public GCreature newPlayerCreature(String folder, Vector2 position) {
+		Body body = world.createBody(newBodyDef(BodyDef.BodyType.DynamicBody, position));
+		
+		GResourcesLoader rl = GResourcesLoader.getInstance();
+		Sprite front = rl.loadSprite(folder + "front.png");
+		Sprite duck = rl.loadSprite(folder + "duck.png");
+		Sprite hurt = rl.loadSprite(folder + "hurt.png");
+		Sprite jump = rl.loadSprite(folder + "jump.png");
+		Sprite stand = rl.loadSprite(folder + "stand.png");
+		Sprite dead = rl.loadSprite(folder + "dead.png");
+		
+		Array<Sprite> walkArray = new Array<Sprite>();
+		walkArray.add(rl.loadSprite(folder + "walk01.png"));
+		walkArray.add(rl.loadSprite(folder + "walk02.png"));
+		walkArray.add(rl.loadSprite(folder + "walk03.png"));
+		walkArray.add(rl.loadSprite(folder + "walk04.png"));
+		walkArray.add(rl.loadSprite(folder + "walk05.png"));
+		walkArray.add(rl.loadSprite(folder + "walk06.png"));
+		walkArray.add(rl.loadSprite(folder + "walk07.png"));
+		walkArray.add(rl.loadSprite(folder + "walk08.png"));
+		walkArray.add(rl.loadSprite(folder + "walk09.png"));
+		walkArray.add(rl.loadSprite(folder + "walk10.png"));
+		walkArray.add(rl.loadSprite(folder + "walk11.png"));
+		Animation walk = new Animation(GConfig.ANIMATION_FRAME_TIME, walkArray);
+		
+		Sprite badge1 = rl.loadSprite(folder + "badge1.png");
+		Sprite badge2 = rl.loadSprite(folder + "badge2.png");
+		
+		Array<Sprite> swimArray = new Array<Sprite>();
+		swimArray.add(rl.loadSprite(folder + "swim1.png"));
+		swimArray.add(rl.loadSprite(folder + "swim2.png"));
+		Animation swim = new Animation(0.2f, swimArray);
+		
+		Array<Sprite> climbArray = new Array<Sprite>();
+		climbArray.add(rl.loadSprite(folder + "climb1.png"));
+		climbArray.add(rl.loadSprite(folder + "climb2.png"));
+		Animation climb = new Animation(0.2f, climbArray);
+		
+		Animation fly = new Animation(0.2f, climbArray);
+		
+		//the players shape is a little smaller to enable falling in 1 tile holes
+		PolygonShape shape = new PolygonShape();
+		shape.setAsBox(front.getWidth()/3, front.getHeight()/2, new Vector2(front.getWidth()/2, front.getHeight()/2), 0);
+		
+		Vector2 dimension = new Vector2(front.getWidth(), front.getHeight());
+		FixtureDef fixtureDef = newFixtureDef(shape, GConfig.PLAYER_DENSITY, 0, GConfig.PLAYER_FRICTION, GConfig.CATEGORY_PLAYER, GConfig.MASK_PLAYER);
+		Fixture fixture = body.createFixture(fixtureDef);
+        body.setFixedRotation(true);
+				
+		shape.dispose();
+		
+		return new GCreature(fixture, body, duck, front, hurt, jump, stand, dead, walk, swim, climb, fly, badge1, badge2, dimension, 50, 50);
+	}
+	
 	public GCreature newCreature(String folder, Vector2 position, int health, boolean walks, boolean flies) {
 		Body body = world.createBody(newBodyDef(BodyDef.BodyType.DynamicBody, position));
 		

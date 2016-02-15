@@ -68,8 +68,8 @@ public class GCreditsScreen implements IScreen {
 	}
 
 	public void update(float deltaTime) {
-		stateTime += deltaTime;
-		if(stateTime + GConfig.CREDITS_TIME < stateTime) {
+		stateTime += deltaTime;		
+		if(GConfig.CREDITS_TIME < stateTime) {
 			caller.endState();
 		}
 	}

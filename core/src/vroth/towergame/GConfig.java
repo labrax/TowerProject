@@ -37,7 +37,7 @@ public class GConfig {
 	public static float MIN_HURT_TIME = 0.4f;
 	public static String PLAYER_FOLDER = "p1/";
 	
-	public static final float CREDITS_TIME = 2f; 
+	public static final float CREDITS_TIME = 15f; 
 	
 	public static final String MAP_FILE = "map.dat";
 	
