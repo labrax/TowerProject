@@ -7,6 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Cursor;
+import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -51,9 +52,15 @@ public class GPlayScreen implements IScreen {
 	
 	private Random random;
 	
-	boolean insideRange = false;
+	private boolean insideRange = false;
 	
-	boolean isControlLeft = false;
+	private boolean isControlLeft = false;
+	
+	private TowerGame caller;
+	
+	protected GPlayScreen(TowerGame caller){
+		this.caller = caller;
+	}
 	
 	public void create(World world) {
 		pointerPosition = new Vector2(0, 0);
@@ -328,6 +335,7 @@ public class GPlayScreen implements IScreen {
 		world.getBodies(bodies);
 		for(Body b : bodies)
 			world.destroyBody(b);
+		Gdx.graphics.setSystemCursor(SystemCursor.Arrow);
 	}
 
 	public boolean keyDown(int keycode) {
@@ -371,6 +379,10 @@ public class GPlayScreen implements IScreen {
 			gameObjects.clear();
 			gameCreatures.clear();
 			player = gameMap.loadFile("map.dat2");
+		}
+		
+		if(keycode == Input.Keys.ESCAPE) {
+			caller.endState();
 		}
 		
 		if(keycode == Input.Keys.Z) {

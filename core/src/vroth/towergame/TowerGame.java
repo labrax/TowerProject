@@ -15,11 +15,13 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	private OrthographicCamera camera;
 	private Box2DDebugRenderer debugRenderer;
 	
-	private GTitleScreen introScreen = null;
-	private GPlayScreen playScreen = null;
+	//private GTitleScreen introScreen = null;
+	//private GPlayScreen playScreen = null;
 	public static IScreen currScreen;
 	
-	private boolean endTitle = false;
+	private enum STATE {TITLE, PLAY, CREDITS};
+	private STATE gameState = STATE.TITLE;
+	private boolean changeState = false;
 	
 	public void create() {
 		//Gdx.graphics.setWindowedMode(800, 600);
@@ -30,30 +32,41 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		camera = new OrthographicCamera(GConfig.SCREEN_WIDTH, GConfig.SCREEN_HEIGHT);
 		debugRenderer = new Box2DDebugRenderer();
 		
-		introScreen = new GTitleScreen(this);
-		currScreen = introScreen;
+		currScreen = new GTitleScreen(this);
 		
 		world = new World(new Vector2(0, -98f), true);
-		//world.setAutoClearForces(true);
 		
 		currScreen.create(world);
 		Gdx.input.setInputProcessor(this);
 	}
 	
 	public void render() {
-		if(endTitle) {
-			endTitle = false;
-			
+		if(changeState) {
+			changeState = false;
 			currScreen.dispose();
-			introScreen = null;
 			
-			playScreen = new GPlayScreen();
-			playScreen.create(world);
-			currScreen = playScreen;
+			switch(gameState) {
+				case CREDITS:
+					currScreen = null;
+					Gdx.app.exit();
+					break;
+				case PLAY:
+					gameState = STATE.CREDITS;
+					currScreen = new GCreditsScreen(this);
+					currScreen.create(world);
+					break;
+				case TITLE:
+					gameState = STATE.PLAY;
+					currScreen = new GPlayScreen(this);
+					currScreen.create(world);
+					break;
+			}
 		}
-		currScreen.update(Gdx.graphics.getDeltaTime());
-		camera.update();
-		currScreen.render(camera, debugRenderer, batch);
+		if(currScreen != null) {
+			currScreen.update(Gdx.graphics.getDeltaTime());
+			camera.update();
+			currScreen.render(camera, debugRenderer, batch);
+		}
 	}
 	
 	public void resize (int width, int height) {
@@ -71,13 +84,13 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 		
 	}
 	
-	public void endTitleScreen() {
-		endTitle = true;
+	public void endState() {
+		changeState = true;
 	}
 	
 	public void dispose() {
-		if(playScreen != null)
-			playScreen.dispose();
+		if(currScreen != null)
+			currScreen.dispose();
 	}
 	
 	public boolean keyDown(int keycode) {

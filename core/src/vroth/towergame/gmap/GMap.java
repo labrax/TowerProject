@@ -833,6 +833,7 @@ public class GMap {
 	}
 	
 	public void saveToFile(String file, GPlayer player) {
+		respawn = player.getBody().getPosition();
 		try {
 			FileHandle openFile = Gdx.files.absolute(file);
 			if(openFile.exists())
@@ -841,30 +842,30 @@ public class GMap {
 			String data = new String("" + GConfig.MAP_WIDTH + " " + getHeight() + " " + player.getBody().getPosition().x + " " + player.getBody().getPosition().y + "\n");
 			
 			for(GConfig.TYPES type : player.getItems().keySet()) {
-				data += type + " " + player.getItems().get(type) + " ";
+				data = data.concat("" + type + " " + player.getItems().get(type) + " ");
 			}
-			data += "\n";
+			data = data.concat("\n");
 			
 			for(int y = 0; y < getHeight(); y++) {
 				GMapLine mapLine = mapLines.get(y);
 				for(int x = 0; x < GConfig.MAP_WIDTH; x++) {
 					if(mapLine.getTileBackground(x) != null)
-						data += mapLine.getTileBackground(x).getType();
+						data = data.concat("" + mapLine.getTileBackground(x).getType());
 					else
-						data += GConfig.TYPES.NOTHING;
-					data += " ";
+						data = data.concat("" + GConfig.TYPES.NOTHING);
+					data = data.concat(" ");
 					if(mapLine.getTileForeground(x) != null)
-						data += mapLine.getTileForeground(x).getType();
+						data = data.concat("" + mapLine.getTileForeground(x).getType());
 					else
-						data += GConfig.TYPES.NOTHING;
-					data += " ";
+						data = data.concat("" + GConfig.TYPES.NOTHING);
+					data = data.concat(" ");
 					if(mapLine.getStaticObject(x) != null)
-						data += mapLine.getStaticObject(x).getType();
+						data = data.concat("" + mapLine.getStaticObject(x).getType());
 					else
-						data += GConfig.TYPES.NOTHING;
-					data += " ";
+						data = data.concat("" + GConfig.TYPES.NOTHING);
+					data = data.concat(" ");
 				}
-				data += "\n";
+				data = data.concat("\n");
 			}
 			
 			openFile.writeString(data, true);

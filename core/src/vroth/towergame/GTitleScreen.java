@@ -99,7 +99,7 @@ public class GTitleScreen implements IScreen {
 
 	public boolean keyDown(int keycode) {
 		if(keycode == Input.Keys.ENTER)
-			caller.endTitleScreen();
+			caller.endState();
 		return true;
 	}
 
