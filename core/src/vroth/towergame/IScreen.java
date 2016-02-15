@@ -17,4 +17,5 @@ public interface IScreen extends InputProcessor{
 	public void resume();
 	public void dispose();
 	public void setCreatureForRemoval(GCreature creature);
+	public float getStateTime();
 }

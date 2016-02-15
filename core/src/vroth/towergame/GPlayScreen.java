@@ -1,13 +1,17 @@
 package vroth.towergame;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
@@ -16,6 +20,7 @@ import com.badlogic.gdx.utils.Array;
 
 import vroth.towergame.gmap.GMap;
 import vroth.towergame.gobject.GCreature;
+import vroth.towergame.gobject.GCreature.STATE;
 import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GObjectResource;
@@ -46,6 +51,10 @@ public class GPlayScreen implements IScreen {
 	
 	private Random random;
 	
+	boolean insideRange = false;
+	
+	boolean isControlLeft = false;
+	
 	public void create(World world) {
 		pointerPosition = new Vector2(0, 0);
 		mousePosition = new Vector2(0, 0);
@@ -57,21 +66,27 @@ public class GPlayScreen implements IScreen {
 		gameCreatures = new Array<GCreature>();
 		creaturesToRemove = new Array<GCreature>();
 		gameMap = new GMap(world);
-		gameMap.generateMapV2();
+		//gameMap.generateMapV2();
 		
-		GObjectFactory factory = GObjectFactory.getInstance(world);
-		player = factory.newPlayer("p1/", new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING));
+		GObjectFactory.getInstance(world);
+		player = gameMap.loadFile(GConfig.MAP_FILE);
 		
 		loadCursor();
 	}
 	
+	private boolean checkRange(Vector2 mousePosition, Vector2 screenCenter) {
+		if(mousePosition.dst(screenCenter) < GConfig.PLAYER_RANGE)
+			return true;
+		return false;
+	}
+	
 	private void leftClick(float stateTime, float deltaTime) {
 		GObject object = gameMap.getObject(pointerPosition);
-		if(object != null) {
-			int objectType = object.getType();
+		if(insideRange && object != null && object.isIndestructible() == false) {
+			GConfig.TYPES objectType = object.getType();
 			float hp = object.hit(player.getDamage() * deltaTime);
 			if(hp < 0) {
-				Array<GObject> newObjects = GObjectFactory.getInstance(world).newResource(objectType, new Vector2(object.getBody().getPosition().x + object.getDimension().x/2, object.getBody().getPosition().y + object.getDimension().y/2), stateTime);
+				Array<GObject> newObjects = GObjectFactory.getInstance(world).newResource(objectType, new Vector2(object.getBody().getPosition().x + object.getDimension().x/2, object.getBody().getPosition().y + object.getDimension().y/2));
 				for(GObject o : newObjects) {
 					if(gameObjects.size < GConfig.MAX_RESOURCES_ON_GAME)
 						gameObjects.add(o);
@@ -95,41 +110,38 @@ public class GPlayScreen implements IScreen {
 	}
 	
 	private void rightClick(float stateTime) {
-		boolean built = false;
-		GObject object = null;
-		int type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
-		switch(type) {
-			case GConfig.ladder:
-				object = GObjectFactory.getInstance(world).newLadder(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), stateTime);
-				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-					built = gameMap.insertObject(object, pointerPosition);
-				else if(gameMap.getForegroundObject(pointerPosition) != null && gameMap.getForegroundObject(pointerPosition).getType() == GConfig.castle)
-					built = gameMap.insertObject(object, pointerPosition);
-				break;
-			case GConfig.grass:
-				object = GObjectFactory.getInstance(world).newDirt(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false, stateTime);
-				object.setType(GConfig.grass);
-				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-					built = gameMap.insertTile((GTile) object, pointerPosition);
-				break;
-			case GConfig.castle:
-				object = GObjectFactory.getInstance(world).newCastle(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false, stateTime);
-				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-					built = gameMap.insertTile((GTile) object, pointerPosition);
-				break;
-			case GConfig.house:
-				object = GObjectFactory.getInstance(world).newHouse(new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false, stateTime);
-				if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-					built = gameMap.insertTile((GTile) object, pointerPosition);
-				break;
-			default:
-				break;
+		if(insideRange == true) {
+			boolean built = false;
+			GObject object = null;
+			GConfig.TYPES type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
+			switch(type) {
+				case LADDER:
+					object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+						built = gameMap.insertObject(object, pointerPosition);
+					else if(gameMap.getForegroundObject(pointerPosition) != null && gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.CASTLE)
+						built = gameMap.insertObject(object, pointerPosition);
+					break;
+				case GRASS:
+					object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+						built = gameMap.insertTile((GTile) object, pointerPosition);
+					break;
+				case CASTLE:
+				case HOUSE:
+					object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+					if(gameMap.insertTile(null, pointerPosition))
+						built = gameMap.insertTile((GTile) object, pointerPosition);
+					break;
+				default:
+					break;
+			}
+			if(object != null && built == false)
+				world.destroyBody(object.getBody());
+			if(object != null && object.getType() != GConfig.TYPES.GRASS)
+				GObjectFactory.getInstance(world).setBuilding(object);
+			//System.out.println(built);
 		}
-		if(object != null && built == false)
-			world.destroyBody(object.getBody());
-		if(object != null && object.getType() != GConfig.grass)
-			GObjectFactory.getInstance(world).setBuilding(object);
-		//System.out.println(built);
 	}
 	
 	private void iterateObjects(float stateTime, float deltaTime) {
@@ -191,15 +203,29 @@ public class GPlayScreen implements IScreen {
 			rightClick(stateTime);
 		}
 		
+		GObject atPlayerPos = gameMap.getObject(new Vector2(player.getCenter().x/70, player.getCenter().y/70));
+		if(atPlayerPos != null && atPlayerPos.getType() == GConfig.TYPES.LADDER)
+			player.setClimb(stateTime, true);
+		else
+			player.setClimb(stateTime, false);
 		player.update(stateTime, deltaTime);
 		
 		iterateObjects(stateTime, deltaTime);
 		
 		//check if there is any creature to remove
 		for(GCreature c : creaturesToRemove) {
-			if(c != player)
+			if(c != player) {
 				world.destroyBody(c.getBody());
-			gameCreatures.removeValue(c, true);
+				gameCreatures.removeValue(c, true);
+			}
+			else {
+				HashMap<GConfig.TYPES, Integer> itemsHash = player.getItems();
+				world.destroyBody(player.getBody());
+				player = GObjectFactory.getInstance(world).newPlayer(GConfig.PLAYER_FOLDER, gameMap.getRespawn());
+				for(GConfig.TYPES type : itemsHash.keySet()) {
+					player.addItem(type, itemsHash.get(type));
+				}
+			}
 		}
 		creaturesToRemove.clear();
 		
@@ -235,6 +261,12 @@ public class GPlayScreen implements IScreen {
 				batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);
 		}
 
+		//render the creatures
+		for(GCreature c : gameCreatures) {
+			if(gameMap.isVisible(refPosition, c.getBody().getPosition(), c.getDimension()))
+				c.render(batch, stateTime, drawReference);
+		}
+		
 		//render the player
 		player.render(batch, stateTime, drawReference);
 		
@@ -244,19 +276,25 @@ public class GPlayScreen implements IScreen {
 					batch.draw(o.getSprite(stateTime), o.getBody().getPosition().x + drawReference.x, o.getBody().getPosition().y + drawReference.y);				
 			}
 		}
-		
-		for(GCreature c : gameCreatures) {
-			if(gameMap.isVisible(refPosition, c.getBody().getPosition(), c.getDimension()))
-				batch.draw(c.getSprite(stateTime), c.getBody().getPosition().x + drawReference.x, c.getBody().getPosition().y + drawReference.y);
-		}
+
 		batch.end();
 
 		if(GConfig.DEBUG_PHYSICS)
 			debugRenderer.render(world, camera.combined);
+		
+		if(GConfig.DRAW_RANGE) {
+			ShapeRenderer sr = new ShapeRenderer();
+			sr.setProjectionMatrix(camera.combined);
+			sr.setColor(Color.BLACK);
+			sr.begin(ShapeType.Line);
+			sr.circle(player.getCenter().x, player.getCenter().y, GConfig.PLAYER_RANGE);
+			sr.end();
+		}
 	}
 	
 	public void resize(int width, int height) {
-		
+		updateMouse();
+		loadCursor();
 	}
 	
 	public void pause() {
@@ -268,6 +306,7 @@ public class GPlayScreen implements IScreen {
 	}
 	
 	public void dispose() {
+		gameMap.saveToFile(GConfig.MAP_FILE, player);
 		gameObjects.clear();
 		Array<Body> bodies = new Array<Body>();
 		world.getBodies(bodies);
@@ -285,21 +324,57 @@ public class GPlayScreen implements IScreen {
 			}
 			GConfig.DEBUG_CONTROLS = !GConfig.DEBUG_CONTROLS;
 		}
+		if(keycode == Input.Keys.F10) {
+			GConfig.DRAW_RANGE = !GConfig.DRAW_RANGE;
+		}
 		
-		if(keycode == Input.Keys.G) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/ghost/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
+		if(keycode == Input.Keys.CONTROL_LEFT)
+			isControlLeft = true;
+		
+		if(keycode == Input.Keys.S && isControlLeft) {
+			gameMap.saveToFile(GConfig.MAP_FILE, player);
+		}
+		else if(keycode == Input.Keys.L && isControlLeft) {
+			Array<Body> bodies = new Array<Body>();
+			world.getBodies(bodies);
+			world.clearForces();
+			for(Body b : bodies) {
+				world.destroyBody(b);
+			}
+			gameObjects.clear();
+			gameCreatures.clear();
+			player = gameMap.loadFile(GConfig.MAP_FILE);
+		}
+		else if(keycode == Input.Keys.N && isControlLeft) {
+			Array<Body> bodies = new Array<Body>();
+			world.getBodies(bodies);
+			world.clearForces();
+			for(Body b : bodies) {
+				world.destroyBody(b);
+			}
+			gameObjects.clear();
+			gameCreatures.clear();
+			player = gameMap.loadFile("map.dat2");
+		}
+		
+		/*if(keycode == Input.Keys.G) {
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/ghost/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			creature.setFly();
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.B) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bee/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bee/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			creature.setFly();
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.A) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bat/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bat/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			creature.setFly();
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.F) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/fly/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true, stateTime);
+			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/fly/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
+			creature.setFly();
 			gameCreatures.add(creature);
 		}
 		else if(keycode == Input.Keys.P) {
@@ -316,7 +391,7 @@ public class GPlayScreen implements IScreen {
 			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p3/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
 			GObjectFactory.getInstance(world).setCreature(creature);
 			gameCreatures.add(creature);
-		}
+		}*/
 		
 		if(GConfig.DEBUG_CONTROLS) {
 			if(keycode == Input.Keys.DOWN)
@@ -333,6 +408,9 @@ public class GPlayScreen implements IScreen {
 	}
 
 	public boolean keyUp(int keycode) {
+		if(keycode == Input.Keys.CONTROL_LEFT)
+			isControlLeft = false;
+		
 		return player.keyUp(keycode);
 	}
 
@@ -383,15 +461,32 @@ public class GPlayScreen implements IScreen {
 	public boolean mouseMoved(int screenX, int screenY) {
 		mousePosition.set(screenX, GConfig.SCREEN_HEIGHT-screenY);
 		updateMouse();
+		loadCursor();
 		return true;
 	}
 	
 	public void loadCursor() {
 		//System.out.println(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection));
 		//System.out.println(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection)));
-		Cursor customCursor = Gdx.graphics.newCursor(GResourcesLoader.getInstance().loadPixmap(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection))), 4, 0);
-		Gdx.graphics.setCursor(customCursor);
-		customCursor.dispose();
+		//System.out.println(mousePosition + " " + new Vector2(GConfig.SCREEN_WIDTH/2, GConfig.SCREEN_HEIGHT/2) + " " + GConfig.PLAYER_RANGE);
+		if(player.getState() == STATE.DEAD) {
+			insideRange = false;
+			Cursor customCursor = Gdx.graphics.newCursor(GResourcesLoader.getInstance().loadPixmap(GDatabase.getInstance().getItemsToCursor(GConfig.TYPES.DEAD)), 4, 0);
+			Gdx.graphics.setCursor(customCursor);
+			customCursor.dispose();
+		}
+		else if(checkRange(mousePosition, new Vector2(GConfig.SCREEN_WIDTH/2, GConfig.SCREEN_HEIGHT/2)) == true) {
+			insideRange = true;
+			Cursor customCursor = Gdx.graphics.newCursor(GResourcesLoader.getInstance().loadPixmap(GDatabase.getInstance().getItemsToCursor(GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection))), 4, 0);
+			Gdx.graphics.setCursor(customCursor);
+			customCursor.dispose();
+		}
+		else {
+			insideRange = false;
+			Cursor customCursor = Gdx.graphics.newCursor(GResourcesLoader.getInstance().loadPixmap(GDatabase.getInstance().getItemsToCursor(GConfig.TYPES.ERR)), 4, 0);
+			Gdx.graphics.setCursor(customCursor);
+			customCursor.dispose();
+		}
 	}
 
 	public boolean scrolled(int amount) {
@@ -405,5 +500,9 @@ public class GPlayScreen implements IScreen {
 
 	public void setCreatureForRemoval(GCreature creature) {
 		creaturesToRemove.add(creature);
+	}
+
+	public float getStateTime() {
+		return stateTime;
 	}
 }

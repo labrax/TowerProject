@@ -20,8 +20,8 @@ public class GPlayer extends GCreature {
 	private BitmapFont itemFont;
 	private GlyphLayout itemLayout;
 	
-	protected GPlayer(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite dead, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension, float creationTime) {
-		super(fixture, body, duck, front, hurt, jump, stand, dead, walk, swim, climb, fly, badge1, badge2, dimension, GConfig.PLAYER_HEALTH, GConfig.PLAYER_HEALTH, creationTime);
+	protected GPlayer(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite dead, Sprite jump, Sprite stand, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension) {
+		super(fixture, body, duck, front, hurt, jump, stand, dead, walk, swim, climb, fly, badge1, badge2, dimension, GConfig.PLAYER_HEALTH, GConfig.PLAYER_HEALTH);
 
 		itemFont = GResourcesLoader.getInstance().getFont("kenpixel_blocks.fnt");
 		itemFont.getData().setScale(GConfig.PLAYER_ITEM_FONT_SIZE);
@@ -36,7 +36,7 @@ public class GPlayer extends GCreature {
 		int amountDraw = 0;
 		GDatabase gDatabase = GDatabase.getInstance();
 		Vector2 basePosition = new Vector2(GConfig.SCREEN_WIDTH-50, 2*GConfig.SCREEN_HEIGHT/3);
-		for(Integer type : gDatabase.getItemsToFileRegister()) {
+		for(GConfig.TYPES type : gDatabase.getItemsToFileRegister()) {
 			if(items.containsKey(type)) {
 				Texture texture = GResourcesLoader.getInstance().loadTexture(gDatabase.getItemToFile(type));
 				
@@ -86,16 +86,20 @@ public class GPlayer extends GCreature {
 	public boolean keyDown(int keycode) {
 		switch (keycode) {
 			case Input.Keys.LEFT:
+			case Input.Keys.A:
 				keyLeft = true;
 				break;
 			case Input.Keys.RIGHT:
+			case Input.Keys.D:
 				keyRight = true;
 				break;
 			case Input.Keys.UP:
 			case Input.Keys.SPACE:
+			case Input.Keys.W:
 				keyUp = true;
 				break;
 			case Input.Keys.DOWN:
+			case Input.Keys.S:
 				keyDown = true;
 				isDucking = true;
 				break;
@@ -108,16 +112,20 @@ public class GPlayer extends GCreature {
 	public boolean keyUp(int keycode) {
 		switch (keycode) {
 			case Input.Keys.LEFT:
+			case Input.Keys.A:
 				keyLeft = false;
 				break;
 			case Input.Keys.RIGHT:
+			case Input.Keys.D:
 				keyRight = false;
 				break;
 			case Input.Keys.UP:
 			case Input.Keys.SPACE:
+			case Input.Keys.W:
 				keyUp = false;
 				break;
 			case Input.Keys.DOWN:
+			case Input.Keys.S:
 				keyDown = false;
 				isDucking = false;
 				break;

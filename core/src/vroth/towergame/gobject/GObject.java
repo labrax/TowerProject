@@ -6,6 +6,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Fixture;
 
 import vroth.towergame.GConfig;
+import vroth.towergame.TowerGame;
 
 public class GObject {
 	protected Fixture fixture;
@@ -14,18 +15,27 @@ public class GObject {
 	protected Vector2 dimension;
 	protected float maxHealth;
 	protected float health;
-	protected int type = 0;
+	protected GConfig.TYPES type = GConfig.TYPES.NOTHING;
 	protected float damage = GConfig.DAMAGE;
 	protected float creationTime;
+	protected boolean indestructible = false;
 	
-	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health, float maxHealth, float creationTime) {
+	public GObject(Fixture fixture, Body body, Sprite staticSprite, Vector2 dimension, float health, float maxHealth) {
 		this.fixture = fixture;
 		this.body = body;
 		this.staticSprite = staticSprite;
 		this.dimension = dimension;
 		this.health = health;
 		this.maxHealth = maxHealth;
-		this.creationTime = creationTime;
+		this.creationTime = TowerGame.currScreen.getStateTime();
+	}
+	
+	public void setIndestructible() {
+		indestructible = true;
+	}
+	
+	public boolean isIndestructible() {
+		return indestructible;
 	}
 	
 	public float getCreationTime() {
@@ -36,11 +46,11 @@ public class GObject {
 		return damage;
 	}
 	
-	public void setType(int type) {
+	public void setType(GConfig.TYPES type) {
 		this.type = type;
 	}
 	
-	public int getType() {
+	public GConfig.TYPES getType() {
 		return type;
 	}
 	

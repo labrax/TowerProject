@@ -2,9 +2,12 @@ package vroth.towergame.gmap;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Random;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -15,6 +18,7 @@ import com.badlogic.gdx.utils.Array;
 import vroth.towergame.GConfig;
 import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
+import vroth.towergame.gobject.GPlayer;
 import vroth.towergame.gobject.GTile;
 import vroth.towergame.gutil.GResourcesLoader;
 
@@ -24,7 +28,7 @@ import vroth.towergame.gutil.GResourcesLoader;
  *
  */
 public class GMap {
-	public static final int iron = GConfig.iron, gold = GConfig.gold, nothing = GConfig.nothing, dirt = GConfig.dirt;
+	public static final GConfig.TYPES iron = GConfig.TYPES.IRON, gold = GConfig.TYPES.COINS, nothing = GConfig.TYPES.NOTHING, dirt = GConfig.TYPES.DIRT;
 	private ArrayList<GMapLine> mapLines = null;
 	private Random r = new Random();
 	private GObjectFactory factory;
@@ -33,15 +37,21 @@ public class GMap {
 	private Sprite ironSprite;
 	private Sprite coinSprite;
 	
+	private Vector2 respawn;
+	
 	/**
 	 * Create the game map handler in a physical world
 	 * @param world is the physics world
 	 */
 	public GMap(World world) {
 		factory = GObjectFactory.getInstance(world);
-		water = factory.newWater(0);
+		water = factory.newTile(GConfig.TYPES.WATER, new Vector2(0, 0), false);
 		ironSprite = GResourcesLoader.getInstance().loadSprite("resource/stoneCoal.png");
 		coinSprite = GResourcesLoader.getInstance().loadSprite("resource/coins.png");
+		reset();
+	}
+	
+	public void reset() {
 		mapLines = new ArrayList<GMapLine>();
 	}
 	
@@ -109,7 +119,7 @@ public class GMap {
 		return visible;
 	}
 	
-	private boolean[] getObjectMask(int x, int y, int type) {
+	private boolean[] getObjectMask(int x, int y, GConfig.TYPES type) {
 		boolean top = false, down = false, left = false, right = false;
 		boolean[] willReturn = new boolean[4];
 		for(int i = 0; i < 4; i++)
@@ -155,7 +165,7 @@ public class GMap {
 	 * @param foreground if the element is on the foreground or background.
 	 * @return the sprite
 	 */
-	private boolean[] getTileMask(int x, int y, boolean foreground, int type) {
+	private boolean[] getTileMask(int x, int y, boolean foreground) {
 		boolean top = false, down = false, left = false, right = false;
 		boolean[] willReturn = new boolean[4];
 		for(int i = 0; i < 4; i++)
@@ -176,29 +186,29 @@ public class GMap {
 		if(object instanceof GTile) {
 			if(mapLines.size() > y) {
 				if(foreground) {
-					if(mapLines.get(y).getTileForeground(x-1) != null && (mapLines.get(y).getTileForeground(x-1).getType()&type) > 0)
+					if(mapLines.get(y).getTileForeground(x-1) != null && mapLines.get(y).getTileForeground(x-1).getType() != GConfig.TYPES.NOTHING)
 						left = true;
-					if(mapLines.get(y).getTileForeground(x+1) != null && (mapLines.get(y).getTileForeground(x+1).getType()&type) > 0)
+					if(mapLines.get(y).getTileForeground(x+1) != null && mapLines.get(y).getTileForeground(x+1).getType() != GConfig.TYPES.NOTHING)
 						right = true;
-					if(y-1 >= 0 && mapLines.get(y-1).getTileForeground(x) != null && (mapLines.get(y-1).getTileForeground(x).getType()&type) > 0)
+					if(y-1 >= 0 && mapLines.get(y-1).getTileForeground(x) != null && mapLines.get(y-1).getTileForeground(x).getType() != GConfig.TYPES.NOTHING)
 						down = true;
 				}
 				else {
-					if(mapLines.get(y).getTileBackground(x-1) != null && (mapLines.get(y).getTileBackground(x-1).getType()&type) > 0)
+					if(mapLines.get(y).getTileBackground(x-1) != null && mapLines.get(y).getTileBackground(x-1).getType() != GConfig.TYPES.NOTHING)
 						left = true;
-					if(mapLines.get(y).getTileBackground(x+1) != null && (mapLines.get(y).getTileBackground(x+1).getType()&type) > 0)
+					if(mapLines.get(y).getTileBackground(x+1) != null && mapLines.get(y).getTileBackground(x+1).getType() != GConfig.TYPES.NOTHING)
 						right = true;
-					if(y-1 >= 0 && mapLines.get(y-1).getTileBackground(x) != null && (mapLines.get(y-1).getTileBackground(x).getType()&type) > 0)
+					if(y-1 >= 0 && mapLines.get(y-1).getTileBackground(x) != null && mapLines.get(y-1).getTileBackground(x).getType() != GConfig.TYPES.NOTHING)
 						down = true;
 				}
 			}
 			if(mapLines.size() > y+1) {
 				if(foreground) {
-					if(mapLines.get(y+1).getTileForeground(x) != null && (mapLines.get(y+1).getTileForeground(x).getType()&type) > 0)
+					if(mapLines.get(y+1).getTileForeground(x) != null && mapLines.get(y+1).getTileForeground(x).getType() != GConfig.TYPES.NOTHING)
 						top = true;
 				}
 				else {
-					if(mapLines.get(y+1).getTileBackground(x) != null && (mapLines.get(y+1).getTileBackground(x).getType()&type) > 0)
+					if(mapLines.get(y+1).getTileBackground(x) != null && mapLines.get(y+1).getTileBackground(x).getType() != GConfig.TYPES.NOTHING)
 						top = true;
 				}
 			}
@@ -225,15 +235,15 @@ public class GMap {
 		GTile f = getMapLine(y).getTileForeground(x);
 		GObject o = getMapLine(y).getStaticObject(x);
 		
-		boolean[] mask = getTileMask(x, y, false, ~GConfig.nothing);
+		boolean[] mask = getTileMask(x, y, false);
 		if(b != null) {
 			Sprite toDraw = b.getSprite(mask[0], mask[1], mask[2], mask[3]);
 			batch.draw(toDraw, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
 			switch(b.getType()) {
-				case GConfig.gold:
+				case COINS:
 					batch.draw(coinSprite, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
 					break;
-				case GConfig.iron:
+				case IRON:
 					batch.draw(ironSprite, b.getBody().getPosition().x + drawReference.x, b.getBody().getPosition().y + drawReference.y);
 					break;
 				default:
@@ -245,15 +255,15 @@ public class GMap {
 			batch.setColor(c);
 		}
 
-		mask = getTileMask(x, y, true, ~GConfig.nothing);
+		mask = getTileMask(x, y, true);
 		if(f != null) {
 			Sprite toDraw = f.getSprite(mask[0], mask[1], mask[2], mask[3]);
 			batch.draw(toDraw, f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
 			switch(f.getType()) {
-				case GConfig.gold:
+				case COINS:
 					batch.draw(coinSprite, f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
 					break;
-				case GConfig.iron:
+				case IRON:
 					batch.draw(ironSprite, f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
 					break;
 				default:
@@ -552,9 +562,9 @@ public class GMap {
 		
 		System.out.println("Using equation " + eqA + "x^2 + " + (eqA > 0 ? 0 : -eqC) + ". GENERATION_HEIGHT is " + GConfig.GENERATION_HEIGHT);
 		
-		int[][] initialMap = new int[GConfig.GENERATION_HEIGHT][];
+		GConfig.TYPES[][] initialMap = new GConfig.TYPES[GConfig.GENERATION_HEIGHT][];
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
-			initialMap[i] = new int[GConfig.GENERATION_WIDTH];
+			initialMap[i] = new GConfig.TYPES[GConfig.GENERATION_WIDTH];
 			for(int j = 0; j < GConfig.GENERATION_WIDTH; j++) {
 				initialMap[i][j] = nothing;
 			}
@@ -639,36 +649,36 @@ public class GMap {
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80) {
 						amountDirt++;
-						object = factory.newDirt(position, false, 0);
+						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
 					}
 					if(r.nextInt(100) < 5) {
 						amountGold++;
-						object2 = factory.newCoinTile(position, true, 0);
+						object2 = factory.newTile(GConfig.TYPES.COINS, position, true);
 					}
 					else {
 						amountDirt++;
-						object2 = factory.newDirt(position, true, 0);
+						object2 = factory.newTile(GConfig.TYPES.DIRT, position, true);
 					}
 				}
 				else if(initialMap[i][j] == gold) {
 					if(r.nextInt(100) < 80) {
 						amountDirt++;
-						object = factory.newDirt(position, false, 0);
+						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
 					}
 					amountGold++;
-					object2 = factory.newCoinTile(position, true, 0);
+					object2 = factory.newTile(GConfig.TYPES.COINS, position, true);
 				}
 				else if(initialMap[i][j] == iron) {
 					if(r.nextInt(100) < 80) {
 						amountIron++;
-						object = factory.newIron(position, false, 0);
+						object = factory.newTile(GConfig.TYPES.IRON, position, false);
 					}
 					else if(r.nextInt(100) < 90) {
 						amountDirt++;
-						object = factory.newDirt(position, false, 0);
+						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
 					}
 					amountIron++;
-					object2 = factory.newIron(position, true, 0);
+					object2 = factory.newTile(GConfig.TYPES.IRON, position, true);
 				}
 				
 				if(object != null)
@@ -689,9 +699,9 @@ public class GMap {
 	public void generateMapV1() {
 		int amountPathIron = 0;
 		
-		int[][] initialMap = new int[GConfig.GENERATION_HEIGHT][];
+		GConfig.TYPES[][] initialMap = new GConfig.TYPES[GConfig.GENERATION_HEIGHT][];
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
-			initialMap[i] = new int[GConfig.GENERATION_WIDTH];
+			initialMap[i] = new GConfig.TYPES[GConfig.GENERATION_WIDTH];
 			for(int j = 0; j < GConfig.GENERATION_WIDTH; j++) {
 				initialMap[i][j] = dirt;
 			}
@@ -741,20 +751,20 @@ public class GMap {
 				GTile object = null, object2 = null;
 				if(initialMap[i][j] == dirt) {
 					if(r.nextInt(100) < 80)
-						object = factory.newDirt(position, false, 0);
-					object2 = factory.newDirt(position, true, 0);
+						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
+					object2 = factory.newTile(GConfig.TYPES.DIRT, position, true);
 				}
 				else if(initialMap[i][j] == gold) {
 					if(r.nextInt(100) < 80)
-						object = factory.newDirt(position, false, 0);
-					object2 = factory.newCoinTile(position, true, 0);
+						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
+					object2 = factory.newTile(GConfig.TYPES.COINS, position, true);
 				}
 				else if(initialMap[i][j] == iron) {
-					object = factory.newIron(position, false, 0);
-					object2 = factory.newIron(position, true, 0);
+					object = factory.newTile(GConfig.TYPES.IRON, position, false);
+					object2 = factory.newTile(GConfig.TYPES.IRON, position, true);
 				}
 				else {
-					object2 = factory.newDirt(position, true, 0);
+					object2 = factory.newTile(GConfig.TYPES.DIRT, position, true);
 				}
 				
 				if(object != null)
@@ -763,5 +773,109 @@ public class GMap {
 					insertTile(object2, new Vector2(j, i), false);
 			}
 		}
+	}
+	
+	public GPlayer loadFile(String file) {
+		GPlayer player = null;
+		Vector2 playerPosition = null;
+		try {
+			reset();
+			FileHandle openFile = Gdx.files.absolute(file);
+			String fileData = openFile.readString();
+			
+			String[] strips = fileData.split("\n");
+			String[] header = strips[0].split(" ");
+			GConfig.MAP_WIDTH = Integer.parseInt(header[0]);
+			int height = Integer.parseInt(header[1]);
+			playerPosition = new Vector2(Float.parseFloat(header[2]), Float.parseFloat(header[3]));
+			
+			HashMap<GConfig.TYPES, Integer> itemsHash = new HashMap<GConfig.TYPES, Integer>();
+			
+			String[] items = strips[1].split(" ");
+			for(int i = 0; i < items.length/2; i++) {
+				itemsHash.put(GConfig.TYPES.valueOf(items[i*2]), Integer.parseInt(items[i*2+1]));
+			}
+			
+			//System.out.println(GConfig.MAP_WIDTH + " " + GConfig.GENERATION_HEIGHT);
+			for(int y = 0; y < height; y++) {
+				int currElem = 0;
+				String[] currLine = strips[y+2].split(" ");
+				//System.out.println(">" + currLine.length);
+				for(int x = 0; x < GConfig.MAP_WIDTH; x++) {
+					//System.out.print(x + " ");
+					Vector2 worldPosition = new Vector2(x*70, y*70);
+					Vector2 gridPosition = new Vector2(x, y);
+					insertTile(factory.newTile(GConfig.TYPES.valueOf(currLine[currElem*3]), worldPosition, true), gridPosition, false);
+					
+					insertTile(factory.newTile(GConfig.TYPES.valueOf(currLine[currElem*3+1]), worldPosition, false), gridPosition, true);
+					
+					insertObject(factory.newTile(GConfig.TYPES.valueOf(currLine[currElem*3+2]), worldPosition, false), gridPosition);
+					
+					currElem++;
+				}
+			}
+			
+			player = GObjectFactory.getInstance(null).newPlayer(GConfig.PLAYER_FOLDER, playerPosition);
+			for(GConfig.TYPES type : itemsHash.keySet()) {
+				player.addItem(type, itemsHash.get(type));
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			System.err.println("Error loading map file " + file);
+			reset();
+			generateMapV2();
+			playerPosition = new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING);
+			player = GObjectFactory.getInstance(null).newPlayer(GConfig.PLAYER_FOLDER, playerPosition);
+		}
+		respawn = playerPosition;
+		return player;
+	}
+	
+	public void saveToFile(String file, GPlayer player) {
+		try {
+			FileHandle openFile = Gdx.files.absolute(file);
+			if(openFile.exists())
+				openFile.delete();
+			openFile = Gdx.files.absolute(file);		
+			String data = new String("" + GConfig.MAP_WIDTH + " " + getHeight() + " " + player.getBody().getPosition().x + " " + player.getBody().getPosition().y + "\n");
+			
+			for(GConfig.TYPES type : player.getItems().keySet()) {
+				data += type + " " + player.getItems().get(type) + " ";
+			}
+			data += "\n";
+			
+			for(int y = 0; y < getHeight(); y++) {
+				GMapLine mapLine = mapLines.get(y);
+				for(int x = 0; x < GConfig.MAP_WIDTH; x++) {
+					if(mapLine.getTileBackground(x) != null)
+						data += mapLine.getTileBackground(x).getType();
+					else
+						data += GConfig.TYPES.NOTHING;
+					data += " ";
+					if(mapLine.getTileForeground(x) != null)
+						data += mapLine.getTileForeground(x).getType();
+					else
+						data += GConfig.TYPES.NOTHING;
+					data += " ";
+					if(mapLine.getStaticObject(x) != null)
+						data += mapLine.getStaticObject(x).getType();
+					else
+						data += GConfig.TYPES.NOTHING;
+					data += " ";
+				}
+				data += "\n";
+			}
+			
+			openFile.writeString(data, true);
+		}
+		catch(Exception e)
+		{
+			System.err.println("Error saving map file " + file);
+		}
+	}
+	
+	public Vector2 getRespawn() {
+		return respawn;
 	}
 }

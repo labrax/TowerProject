@@ -22,7 +22,6 @@ import vroth.towergame.gobject.GTile;
 import vroth.towergame.gutil.GResourcesLoader;
 
 public class GTitleScreen implements IScreen {
-	public static final int iron = GConfig.iron, gold = GConfig.gold, nothing = GConfig.nothing, dirt = GConfig.dirt;
 	private TowerGame caller;
 	private GMap map;
 	private World world;
@@ -85,13 +84,13 @@ public class GTitleScreen implements IScreen {
 		
 		//2 tiles down
 		if(map.getForegroundObject(new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1)) == null) {
-			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT-1)*GConfig.TILE_SPACING), false, 0);
+			GTile tile = factory.newTile(GConfig.TYPES.DIRT, new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT-1)*GConfig.TILE_SPACING), false);
 			map.insertTile(tile, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT-1), true);
 		}
 		
 		//1 tiles down
 		if(map.getForegroundObject(new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT)) == null) {
-			GTile tile = factory.newDirt(new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT)*GConfig.TILE_SPACING), false, 0);
+			GTile tile = factory.newTile(GConfig.TYPES.DIRT, new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT)*GConfig.TILE_SPACING), false);
 			map.insertTile(tile, new Vector2(GConfig.MAP_WIDTH/2, GConfig.GENERATION_HEIGHT), true);
 		}
 		
@@ -212,6 +211,12 @@ public class GTitleScreen implements IScreen {
 	public void setCreatureForRemoval(GCreature creature) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public float getStateTime() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

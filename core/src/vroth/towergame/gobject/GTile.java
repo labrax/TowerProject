@@ -9,8 +9,8 @@ public class GTile extends GObject {
 	
 	private Sprite[] sprites;
 	
-	public GTile(Fixture fixture, Body body, Sprite[] sprites, Vector2 dimension, int health, float creationTime) {
-		super(fixture, body, sprites[0], dimension, health, health, creationTime);
+	public GTile(Fixture fixture, Body body, Sprite[] sprites, Vector2 dimension, int health) {
+		super(fixture, body, sprites[0], dimension, health, health);
 		this.sprites = sprites;
 	}
 	

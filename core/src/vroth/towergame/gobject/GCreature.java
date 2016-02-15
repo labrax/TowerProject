@@ -2,6 +2,7 @@ package vroth.towergame.gobject;
 
 import java.util.HashMap;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -24,18 +25,22 @@ public class GCreature extends GObject {
 	
 	protected boolean goRight;
 	
-	protected HashMap<Integer, Integer> items = new HashMap<Integer, Integer>();
+	protected HashMap<GConfig.TYPES, Integer> items = new HashMap<GConfig.TYPES, Integer>();
 	
 	protected STATE currState = STATE.STOP;
 	protected float stateTime;
-	protected boolean isDucking, isHurt;
+	protected boolean isDucking, isHurt, noHurt = false;
 	
 	protected int amountJump;
 	
 	protected boolean flies = false;
+	protected float timeHurt = -4;
 	
-	public GCreature(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Sprite dead, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension, int health, int maxHealth, float creationTime) {
-		super(fixture, body, front, dimension, health, maxHealth, creationTime);
+	public GCreature(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Sprite dead, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension, int health, int maxHealth) {
+		super(fixture, body, front, dimension, health, maxHealth);
+		
+		if(hurt == GResourcesLoader.getInstance().getErrSprite())
+			noHurt = true;
 		
 		this.isDucking = false;
 		this.isHurt = false;
@@ -111,7 +116,18 @@ public class GCreature extends GObject {
 	}
 	
 	public void render(SpriteBatch batch, float stateTime, Vector2 drawReference) {
-		batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
+		//System.out.println(stateTime + " " + timeHurt);
+		if(stateTime - timeHurt < 0.3) {
+			batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
+			Color c = batch.getColor();
+			batch.setColor(new Color(1f, 0f, 0f, 0.8f));
+			batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
+			batch.setColor(c);
+			
+		}
+		else {
+			batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
+		}
 	}
 	
 	private void setVelocity(Vector2 velocity) {
@@ -128,8 +144,12 @@ public class GCreature extends GObject {
 		return (this.health -= damage);
 	}
 	
-	private void applyHurt() {
-		if(!flies) {
+	private void applyHurt(float stateTime) {
+		if(noHurt) {
+			timeHurt = stateTime;
+			setVelocity(new Vector2(0, 0));
+		}
+		else { 
 			setState(stateTime, STATE.DAMAGE);
 			if(goRight)
 				setVelocity(new Vector2(-50f, 50f));
@@ -140,6 +160,7 @@ public class GCreature extends GObject {
 	
 	
 	protected void setState(float stateTime, STATE newState) {
+		//System.out.println(currState + " -> " + newState);
 		this.stateTime = stateTime;
 		this.currState = newState;
 	}
@@ -166,11 +187,19 @@ public class GCreature extends GObject {
 		return false;
 	}
 	
-	public void addItem(int type) {
+	public void addItem(GConfig.TYPES type) {
 		if(!items.containsKey(type))
 			items.put(type, 1);
 		else
 			items.put(type, items.get(type)+1);
+		//System.out.println(type + ":" + items.get(type));
+	}
+	
+	public void addItem(GConfig.TYPES type, int amount) {
+		if(!items.containsKey(type))
+			items.put(type, amount);
+		else
+			items.put(type, items.get(type)+amount);
 		//System.out.println(type + ":" + items.get(type));
 	}
 	
@@ -181,7 +210,7 @@ public class GCreature extends GObject {
 		switch(currState) {
 			case FLY:
 				if(isHurt)
-					applyHurt();
+					applyHurt(stateTime);
 				
 				if(keyLeft)
 					body.applyForceToCenter(new Vector2(body.getLinearVelocity().x > -GConfig.SPEED_FLY ? -GConfig.SPEED_FLY * deltaTime : 0, 0), true);
@@ -202,10 +231,39 @@ public class GCreature extends GObject {
 		}
 	}
 	
+	public void setClimb(float stateTime, boolean climbing) {
+		if(climbing) {
+			if(currState != STATE.CLIMB) {
+				setState(stateTime, STATE.CLIMB);
+				setVelocity(new Vector2(0, 0));
+			}
+		}
+		else {
+			if(currState == STATE.CLIMB) {
+				setState(stateTime, STATE.STOP);
+			}
+		}
+	}
+	
 	private void updateNoFlies(float stateTime, float deltaTime) {
 		Vector2 velocity = body.getLinearVelocity();
 		//change the state if the conditions are valid; otherwise make player movement
 		switch (currState) {
+			case CLIMB:
+				if(isHurt)
+					applyHurt(stateTime);
+				if(keyLeft)
+					body.applyForceToCenter(new Vector2(body.getLinearVelocity().x > -GConfig.SPEED_WALK ? -GConfig.SPEED_WALK * deltaTime : 0, 0), true);
+				else if(keyRight)
+					body.applyForceToCenter(new Vector2(body.getLinearVelocity().x < GConfig.SPEED_WALK ? GConfig.SPEED_WALK * deltaTime : 0, 0), true);
+				
+				if(keyDown)
+					body.applyForceToCenter(new Vector2(0, body.getLinearVelocity().y > -GConfig.SPEED_WALK ? -GConfig.SPEED_WALK * deltaTime : 0), true);
+				else if(keyUp)
+					body.applyForceToCenter(new Vector2(0, body.getLinearVelocity().y < GConfig.SPEED_WALK ? GConfig.SPEED_WALK * deltaTime : 0), true);
+				
+				body.setGravityScale(0);
+				break;
 			case DAMAGE:
 				if(health > 0) {
 					if(equalZero(velocity.y))
@@ -214,7 +272,7 @@ public class GCreature extends GObject {
 				break;
 			case DUCK:
 				if(isHurt)
-					applyHurt();
+					applyHurt(stateTime);
 				else if(lessThanZero(velocity.y))
 					setState(stateTime, STATE.FALL);
 				else if(!equalZero(velocity.x))
@@ -226,7 +284,7 @@ public class GCreature extends GObject {
 				break;
 			case FALL:
 				if(isHurt)
-					applyHurt();
+					applyHurt(stateTime);
 				else if(equalZero(velocity.y) && !equalZero(velocity.x))
 					setState(stateTime, STATE.WALK);
 				else if(equalZero(velocity.y) && equalZero(velocity.x))
@@ -247,7 +305,7 @@ public class GCreature extends GObject {
 				break;
 			case JUMP:
 				if(isHurt)
-					applyHurt();
+					applyHurt(stateTime);
 				else if(equalZero(velocity.y) || lessThanZero(velocity.y))
 					setState(stateTime, STATE.FALL);
 				else {
@@ -258,9 +316,11 @@ public class GCreature extends GObject {
 				}
 				break;
 			case STOP:
+				body.setGravityScale(1);
+				
 				amountJump = GConfig.MAX_JUMP;
 				if(isHurt)
-					applyHurt();
+					applyHurt(stateTime);
 				else if(lessThanZero(velocity.y))
 					setState(stateTime, STATE.FALL);
 				else if(!equalZero(velocity.x))
@@ -283,7 +343,7 @@ public class GCreature extends GObject {
 			case WALK:
 				amountJump = GConfig.MAX_JUMP;
 				if(isHurt)
-					applyHurt();
+					applyHurt(stateTime);
 				else if(lessThanZero(velocity.y))
 					setState(stateTime, STATE.FALL);
 				else if(greaterThanZero(velocity.y))
@@ -368,5 +428,13 @@ public class GCreature extends GObject {
 			keyUp = false;
 			keyDown = false;
 		}
+	}
+	
+	public HashMap<GConfig.TYPES, Integer> getItems() {
+		return items;
+	}
+	
+	public STATE getState() {
+		return currState;
 	}
 }

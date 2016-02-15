@@ -6,17 +6,18 @@ import java.util.Random;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
+import vroth.towergame.GConfig;
 import vroth.towergame.gobject.GPlayer;
 
 public class GDatabase {
 	private Random random;
 	
 	public static GDatabase instance = null;
-	private HashMap<Integer, String> itemsToFile;
-	private Array<Integer> itemsToFileRegister;
+	private HashMap<GConfig.TYPES, String> itemsToFile;
+	private Array<GConfig.TYPES> itemsToFileRegister;
 	
-	private HashMap<Integer, String> itemsToCursor;
-	private Array<Integer> itemsToCursorRegister;
+	private HashMap<GConfig.TYPES, String> itemsToCursor;
+	private Array<GConfig.TYPES> itemsToCursorRegister;
 	
 	private HashMap<String, String> elementToFile;
 	
@@ -40,30 +41,30 @@ public class GDatabase {
 		return random;
 	}
 	
-	private void createItemToFileAux(Integer item, String file) {
+	private void createItemToFileAux(GConfig.TYPES item, String file) {
 		itemsToFileRegister.add(item);
 		itemsToFile.put(item, file);
 	}
 	
 	private void createItemToFile() {
-		itemsToFile = new HashMap<Integer,String>();
-		itemsToFileRegister = new Array<Integer>();
-		createItemToFileAux(0x1, "items/particleDirt.png");
-		createItemToFileAux(0x10, "items/particleIron.png");
-		createItemToFileAux(0x20, "items/coinBronze.png");
-		createItemToFileAux(0x21, "items/coinSilver.png");
-		createItemToFileAux(0x22, "items/coinGold.png");
-		createItemToFileAux(0xC0, "items/grass.png");
-		createItemToFileAux(0xD0, "items/castle.png");
-		createItemToFileAux(0xE0, "items/houseBeige.png");
-		createItemToFileAux(0xFF, "items/ladder.png");
+		itemsToFile = new HashMap<GConfig.TYPES,String>();
+		itemsToFileRegister = new Array<GConfig.TYPES>();
+		createItemToFileAux(GConfig.TYPES.PARTICLE_DIRT, "items/particleDirt.png");
+		createItemToFileAux(GConfig.TYPES.PARTICLE_IRON, "items/particleIron.png");
+		createItemToFileAux(GConfig.TYPES.BRONZE_COIN, "items/coinBronze.png");
+		createItemToFileAux(GConfig.TYPES.SILVER_COIN, "items/coinSilver.png");
+		createItemToFileAux(GConfig.TYPES.GOLD_COIN, "items/coinGold.png");
+		createItemToFileAux(GConfig.TYPES.GRASS, "items/grass.png");
+		createItemToFileAux(GConfig.TYPES.CASTLE, "items/castle.png");
+		createItemToFileAux(GConfig.TYPES.HOUSE, "items/houseBeige.png");
+		createItemToFileAux(GConfig.TYPES.LADDER, "items/ladder.png");
 	}
 	
-	public String getItemToFile(Integer type) {
+	public String getItemToFile(GConfig.TYPES type) {
 		return itemsToFile.get(type);
 	}
 	
-	public Array<Integer> getItemsToFileRegister() {
+	public Array<GConfig.TYPES> getItemsToFileRegister() {
 		return itemsToFileRegister;
 	}
 	
@@ -92,29 +93,31 @@ public class GDatabase {
 		return stateToRefVector.get(new String(currState.toString()+frameIndex));
 	}
 	
-	private void createItemToCursorAux(int key, String value) {
+	private void createItemToCursorAux(GConfig.TYPES key, String value) {
 		itemsToCursor.put(key, value);
 		itemsToCursorRegister.add(key);
 	}
 	
 	private void createItemsToCursor() {
-		itemsToCursor = new HashMap<Integer, String>();
-		itemsToCursorRegister = new Array<Integer>();
-		createItemToCursorAux(0x0, "cursor/pickaxeCursor.png");
+		itemsToCursor = new HashMap<GConfig.TYPES, String>();
+		itemsToCursorRegister = new Array<GConfig.TYPES>();
+		createItemToCursorAux(GConfig.TYPES.PICKAXE, "cursor/pickaxeCursor.png");
 		//createItemToCursorAux(0x1, "cursor/grass.png");
 		//createItemToCursorAux(0x10, "cursor/houseBeige.png");
-		createItemToCursorAux(0xC0, "cursor/grass.png");
-		createItemToCursorAux(0xD0, "cursor/castle.png");
-		createItemToCursorAux(0xE0, "cursor/houseBeige.png");
+		createItemToCursorAux(GConfig.TYPES.GRASS, "cursor/grass.png");
+		createItemToCursorAux(GConfig.TYPES.CASTLE, "cursor/castle.png");
+		createItemToCursorAux(GConfig.TYPES.HOUSE, "cursor/houseBeige.png");
 		//createItemToCursorAux(0xFE, "cursor/swordCursor.png");
-		createItemToCursorAux(0xFF, "cursor/ladder.png");
+		createItemToCursorAux(GConfig.TYPES.LADDER, "cursor/ladder.png");
+		createItemToCursorAux(GConfig.TYPES.ERR, "cursor/farCursor.png");
+		createItemToCursorAux(GConfig.TYPES.DEAD, "cursor/dead.png");
 	}
 	
-	public String getItemsToCursor(int type) {
+	public String getItemsToCursor(GConfig.TYPES type) {
 		return itemsToCursor.get(type);
 	}
 	
-	public int getItemsFromCursorIndex(int id) {
+	public GConfig.TYPES getItemsFromCursorIndex(int id) {
 		return itemsToCursorRegister.get(id);
 	}
 }

@@ -8,11 +8,13 @@ public class GConfig {
 	public static final String ASSET_PATH = "C:/Users/Victor/Desktop/assets/";
 
 	public static int GENERATION_HEIGHT = 30, GENERATION_WIDTH = 100, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35, TILE_SPACING = 70;
-	public static final int iron = 0x10, gold = 0x11, nothing = 0x0, dirt = 0x1, water = 0x2, coin_bronze = 0x20, coin_silver = 0x21, coin_gold = 0x22;
+	/*public static final int iron = 0x10, gold = 0x11, nothing = 0x0, dirt = 0x1, water = 0x2, coin_bronze = 0x20, coin_silver = 0x21, coin_gold = 0x22;
 	public static final int grass = 0xC0;
 	public static final int castle = 0xD0;
 	public static final int house = 0xE0;
-	public static final int ladder = 0xFF;
+	public static final int ladder = 0xFF;*/
+	
+	public static enum TYPES {ERR, NOTHING, PICKAXE, IRON, COINS, DIRT, GRASS, CASTLE, HOUSE, LADDER, WATER, BRONZE_COIN, SILVER_COIN, GOLD_COIN, PARTICLE_DIRT, PARTICLE_IRON, DEAD};
 	
 	public static int ON_GAME_RESOURCE_TIME = 15;
 	public static int MAX_RESOURCES_ON_GAME = 200;
@@ -30,6 +32,11 @@ public class GConfig {
 	public static int MAX_JUMP = 2;
 	public static final float PLAYER_ITEM_FONT_SIZE = 0.15f;
 	public static final int DEAD_TIME = 2;
+	public static final float PLAYER_RANGE = 250f;
+	public static boolean DRAW_RANGE = false;
+	public static String PLAYER_FOLDER = "p1/";
+	
+	public static final String MAP_FILE = "map.dat";
 	
 	public static int MAP_WIDTH = 2*GENERATION_WIDTH;
 	
