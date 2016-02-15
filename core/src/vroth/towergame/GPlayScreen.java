@@ -80,6 +80,14 @@ public class GPlayScreen implements IScreen {
 		return false;
 	}
 	
+	private boolean isInside(Vector2 mouseFixedPosition, Vector2 creatureBase, Vector2 creatureDimension) {
+		//System.out.println(mouseFixedPosition + " " + creatureBase + " " + creatureDimension);
+		if(mouseFixedPosition.x >= creatureBase.x && mouseFixedPosition.x < creatureBase.x + creatureDimension.x)
+			if(mouseFixedPosition.y >= creatureBase.y && mouseFixedPosition.y < creatureBase.y + creatureDimension.y)
+				return true;
+		return false;
+	}
+	
 	private void leftClick(float stateTime, float deltaTime) {
 		GObject object = gameMap.getObject(pointerPosition);
 		if(insideRange && object != null && object.isIndestructible() == false) {
@@ -105,6 +113,12 @@ public class GPlayScreen implements IScreen {
 				//player.getBody().applyForceToCenter(new Vector2(GConfig.SPEED_WALK*(object.getCenter().x-player.getCenter().x), GConfig.FORCE_UP*(object.getCenter().y-player.getCenter().y)), true);
 				world.destroyBody(object.getBody());
 				gameMap.destroyObject(pointerPosition);
+			}
+		}
+		else if(insideRange) {
+			for(GCreature c : gameCreatures) {
+				if(isInside(new Vector2(pointerPosition.x*70, pointerPosition.y*70), c.getBody().getPosition(), c.getDimension()))
+					c.hit(player.getDamage()*deltaTime);
 			}
 		}
 	}
@@ -185,6 +199,8 @@ public class GPlayScreen implements IScreen {
 			if(c.getBody().getPosition().y < 0) {
 				c.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
 			}
+			if(c.getState() != STATE.DEAD && isInside(player.getCenter(), c.getBody().getPosition(), c.getDimension()))
+				player.hit(c.getDamage()*deltaTime/10);
 			c.setGoal(player.getCenter());
 			c.update(stateTime, deltaTime);
 		}
@@ -357,41 +373,41 @@ public class GPlayScreen implements IScreen {
 			player = gameMap.loadFile("map.dat2");
 		}
 		
-		/*if(keycode == Input.Keys.G) {
+		if(keycode == Input.Keys.Z) {
 			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/ghost/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
 			creature.setFly();
 			gameCreatures.add(creature);
 		}
-		else if(keycode == Input.Keys.B) {
+		else if(keycode == Input.Keys.X) {
 			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bee/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
 			creature.setFly();
 			gameCreatures.add(creature);
 		}
-		else if(keycode == Input.Keys.A) {
+		else if(keycode == Input.Keys.C) {
 			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bat/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
 			creature.setFly();
 			gameCreatures.add(creature);
 		}
-		else if(keycode == Input.Keys.F) {
+		else if(keycode == Input.Keys.V) {
 			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/fly/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
 			creature.setFly();
 			gameCreatures.add(creature);
 		}
-		else if(keycode == Input.Keys.P) {
+		else if(keycode == Input.Keys.B) {
 			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p1/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
 			GObjectFactory.getInstance(world).setCreature(creature);
 			gameCreatures.add(creature);
 		}
-		else if(keycode == Input.Keys.O) {
+		else if(keycode == Input.Keys.N) {
 			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p2/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
 			GObjectFactory.getInstance(world).setCreature(creature);
 			gameCreatures.add(creature);
 		}
-		else if(keycode == Input.Keys.I) {
+		else if(keycode == Input.Keys.M) {
 			GCreature creature = GObjectFactory.getInstance(world).newPlayer("p3/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
 			GObjectFactory.getInstance(world).setCreature(creature);
 			gameCreatures.add(creature);
-		}*/
+		}
 		
 		if(GConfig.DEBUG_CONTROLS) {
 			if(keycode == Input.Keys.DOWN)

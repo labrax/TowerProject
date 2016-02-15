@@ -39,7 +39,7 @@ public class GCreature extends GObject {
 	public GCreature(Fixture fixture, Body body, Sprite duck, Sprite front, Sprite hurt, Sprite jump, Sprite stand, Sprite dead, Animation walk, Animation swim, Animation climb, Animation fly, Sprite badge1, Sprite badge2, Vector2 dimension, int health, int maxHealth) {
 		super(fixture, body, front, dimension, health, maxHealth);
 		
-		if(hurt == GResourcesLoader.getInstance().getErrSprite())
+		if(hurt == GResourcesLoader.getInstance().getErrSprite() || hurt == null)
 			noHurt = true;
 		
 		this.isDucking = false;
@@ -117,7 +117,7 @@ public class GCreature extends GObject {
 	
 	public void render(SpriteBatch batch, float stateTime, Vector2 drawReference) {
 		//System.out.println(stateTime + " " + timeHurt);
-		if(stateTime - timeHurt < 0.3) {
+		if(noHurt && stateTime - timeHurt < 0.3) {
 			batch.draw(getSprite(stateTime), body.getPosition().x + drawReference.x, body.getPosition().y + drawReference.y);
 			Color c = batch.getColor();
 			batch.setColor(new Color(1f, 0f, 0f, 0.8f));
@@ -145,16 +145,18 @@ public class GCreature extends GObject {
 	}
 	
 	private void applyHurt(float stateTime) {
-		if(noHurt) {
-			timeHurt = stateTime;
-			setVelocity(new Vector2(0, 0));
-		}
-		else { 
-			setState(stateTime, STATE.DAMAGE);
-			if(goRight)
-				setVelocity(new Vector2(-50f, 50f));
-			else
-				setVelocity(new Vector2(50f, 50f));
+		if(timeHurt + GConfig.MIN_HURT_TIME < stateTime) {
+			if(noHurt) {
+				timeHurt = stateTime;
+				setVelocity(new Vector2(0, 0));
+			}
+			else { 
+				setState(stateTime, STATE.DAMAGE);
+				if(goRight)
+					setVelocity(new Vector2(-50f, 50f));
+				else
+					setVelocity(new Vector2(50f, 50f));
+			}
 		}
 	}
 	

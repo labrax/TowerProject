@@ -34,6 +34,7 @@ public class GConfig {
 	public static final int DEAD_TIME = 2;
 	public static final float PLAYER_RANGE = 250f;
 	public static boolean DRAW_RANGE = false;
+	public static float MIN_HURT_TIME = 0.4f;
 	public static String PLAYER_FOLDER = "p1/";
 	
 	public static final String MAP_FILE = "map.dat";
