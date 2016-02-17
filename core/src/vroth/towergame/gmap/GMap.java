@@ -16,6 +16,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
 import vroth.towergame.GConfig;
+import vroth.towergame.GConfig.TYPES;
 import vroth.towergame.gobject.GObject;
 import vroth.towergame.gobject.GObjectFactory;
 import vroth.towergame.gobject.GPlayer;
@@ -37,6 +38,11 @@ public class GMap {
 	private Sprite ironSprite;
 	private Sprite coinSprite;
 	
+	private Array<Sprite> alternateHouse = new Array<Sprite>();
+	private Array<Sprite> alternateHouseCastle = new Array<Sprite>();
+	private Array<Sprite> topGrass = new Array<Sprite>();
+	private Array<Sprite> topHouse = new Array<Sprite>();
+	
 	private Vector2 respawn;
 	
 	/**
@@ -48,6 +54,29 @@ public class GMap {
 		water = factory.newTile(GConfig.TYPES.WATER, new Vector2(0, 0), false);
 		ironSprite = GResourcesLoader.getInstance().loadSprite("resource/stoneCoal.png");
 		coinSprite = GResourcesLoader.getInstance().loadSprite("resource/coins.png");
+		alternateHouse.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/houseBeige_.png"));
+		alternateHouse.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/houseBeige__.png"));
+		alternateHouseCastle.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/window_big_checkered.png"));
+		alternateHouseCastle.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/window_small_checkered.png"));
+		alternateHouseCastle.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/window_big.png"));
+		alternateHouseCastle.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/window_small.png"));
+		alternateHouseCastle.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/window_colored.png"));
+		alternateHouseCastle.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/window_colored_small.png"));
+		alternateHouseCastle.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/black_window.png"));
+		topHouse.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/chimney.png"));
+		topHouse.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/chimneyLow.png"));
+		topHouse.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/chimneyThin.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/grass1.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/grass2.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/grass3.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/grass4.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/grassBrown.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/grassTan.png"));
+		//topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/rock.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/rockMoss.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/rockMoss_.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/smallRock.png"));
+		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/smallRockMoss.png"));
 		reset();
 	}
 	
@@ -111,7 +140,7 @@ public class GMap {
 	 * @param reference
 	 * @return
 	 */
-	private Vector2[] rangeVisible(Vector2 refPosition) {
+	public Vector2[] rangeVisible(Vector2 refPosition) {
 		Vector2[] visible = new Vector2[2];
 		visible[0] = new Vector2((int) Math.floor(refPosition.x/GConfig.TILE_SPACING - GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING - 1), (int) Math.ceil(refPosition.y/GConfig.TILE_SPACING - GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING - 1));
 		visible[1] = new Vector2((int) Math.floor(refPosition.x/GConfig.TILE_SPACING + GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING + 1), (int) Math.ceil(refPosition.y/GConfig.TILE_SPACING + GConfig.SCREEN_HEIGHT/GConfig.TILE_SPACING + 1)); 
@@ -165,7 +194,7 @@ public class GMap {
 	 * @param foreground if the element is on the foreground or background.
 	 * @return the sprite
 	 */
-	private boolean[] getTileMask(int x, int y, boolean foreground) {
+	public boolean[] getTileMask(int x, int y, boolean foreground) {
 		boolean top = false, down = false, left = false, right = false;
 		boolean[] willReturn = new boolean[4];
 		for(int i = 0; i < 4; i++)
@@ -174,51 +203,39 @@ public class GMap {
 		if(y >= mapLines.size())
 			return null;
 
-		GObject object;
-		if(foreground)
-			object = mapLines.get(y).getTileForeground(x);
-		else
-			object = mapLines.get(y).getTileBackground(x);
-		
-		if(object == null)
-			return null;
-		
-		if(object instanceof GTile) {
-			if(mapLines.size() > y) {
-				if(foreground) {
-					if(mapLines.get(y).getTileForeground(x-1) != null && mapLines.get(y).getTileForeground(x-1).getType() != GConfig.TYPES.NOTHING)
-						left = true;
-					if(mapLines.get(y).getTileForeground(x+1) != null && mapLines.get(y).getTileForeground(x+1).getType() != GConfig.TYPES.NOTHING)
-						right = true;
-					if(y-1 >= 0 && mapLines.get(y-1).getTileForeground(x) != null && mapLines.get(y-1).getTileForeground(x).getType() != GConfig.TYPES.NOTHING)
-						down = true;
-				}
-				else {
-					if(mapLines.get(y).getTileBackground(x-1) != null && mapLines.get(y).getTileBackground(x-1).getType() != GConfig.TYPES.NOTHING)
-						left = true;
-					if(mapLines.get(y).getTileBackground(x+1) != null && mapLines.get(y).getTileBackground(x+1).getType() != GConfig.TYPES.NOTHING)
-						right = true;
-					if(y-1 >= 0 && mapLines.get(y-1).getTileBackground(x) != null && mapLines.get(y-1).getTileBackground(x).getType() != GConfig.TYPES.NOTHING)
-						down = true;
-				}
+		if(mapLines.size() > y) {
+			if(foreground) {
+				if(mapLines.get(y).getTileForeground(x-1) != null && mapLines.get(y).getTileForeground(x-1).getType() != GConfig.TYPES.NOTHING)
+					left = true;
+				if(mapLines.get(y).getTileForeground(x+1) != null && mapLines.get(y).getTileForeground(x+1).getType() != GConfig.TYPES.NOTHING)
+					right = true;
+				if(y-1 >= 0 && mapLines.get(y-1).getTileForeground(x) != null && mapLines.get(y-1).getTileForeground(x).getType() != GConfig.TYPES.NOTHING)
+					down = true;
 			}
-			if(mapLines.size() > y+1) {
-				if(foreground) {
-					if(mapLines.get(y+1).getTileForeground(x) != null && mapLines.get(y+1).getTileForeground(x).getType() != GConfig.TYPES.NOTHING)
-						top = true;
-				}
-				else {
-					if(mapLines.get(y+1).getTileBackground(x) != null && mapLines.get(y+1).getTileBackground(x).getType() != GConfig.TYPES.NOTHING)
-						top = true;
-				}
+			else {
+				if(mapLines.get(y).getTileBackground(x-1) != null && mapLines.get(y).getTileBackground(x-1).getType() != GConfig.TYPES.NOTHING)
+					left = true;
+				if(mapLines.get(y).getTileBackground(x+1) != null && mapLines.get(y).getTileBackground(x+1).getType() != GConfig.TYPES.NOTHING)
+					right = true;
+				if(y-1 >= 0 && mapLines.get(y-1).getTileBackground(x) != null && mapLines.get(y-1).getTileBackground(x).getType() != GConfig.TYPES.NOTHING)
+					down = true;
 			}
-		
-			willReturn[0] = top;
-			willReturn[1] = down;
-			willReturn[2] = left;
-			willReturn[3] = right;
-			return willReturn;
 		}
+		if(mapLines.size() > y+1) {
+			if(foreground) {
+				if(mapLines.get(y+1).getTileForeground(x) != null && mapLines.get(y+1).getTileForeground(x).getType() != GConfig.TYPES.NOTHING)
+					top = true;
+			}
+			else {
+				if(mapLines.get(y+1).getTileBackground(x) != null && mapLines.get(y+1).getTileBackground(x).getType() != GConfig.TYPES.NOTHING)
+					top = true;
+			}
+		}
+	
+		willReturn[0] = top;
+		willReturn[1] = down;
+		willReturn[2] = left;
+		willReturn[3] = right;
 		return willReturn;
 	}
 	
@@ -265,6 +282,33 @@ public class GMap {
 					break;
 				case IRON:
 					batch.draw(ironSprite, f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+					break;
+				case HOUSE:
+					if(mask[0] == true && mask[1] == true && mask[2] == true && mask[3] == true) {
+						if((y+x*5) % 13 == 0)
+							batch.draw(alternateHouse.get(0), f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+						else if((y+x*3) % 7 == 0)
+							batch.draw(alternateHouse.get(1), f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+						else if((y*2+x)*7 % 4 == 0 && getMapLine(y-1).getTileForeground(x) != null && getMapLine(y-1).getTileForeground(x).getType() == TYPES.HOUSE)
+							batch.draw(alternateHouseCastle.get((x-y) % alternateHouseCastle.size), f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+					}
+					else if(mask[0] == false) {
+						if((2*x+11*y) % 7 == 0) {
+							batch.draw(topHouse.get((y+x)%topHouse.size), f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y+70 + drawReference.y);
+						}
+					}
+					break;
+				case CASTLE:
+					if((x - y*7)%17 == 0 && getMapLine(y-1).getTileForeground(x) != null && getMapLine(y-1).getTileForeground(x).getType() == TYPES.CASTLE)
+						batch.draw(alternateHouseCastle.get((x+y) % alternateHouseCastle.size), f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y + drawReference.y);
+					break;
+				case DIRT:
+				case GRASS:
+					if(mask[0] == false) {
+						if((4*x*y*7) % 3 == 0) {
+							batch.draw(topGrass.get((y+x)%topGrass.size), f.getBody().getPosition().x + drawReference.x, f.getBody().getPosition().y+70 + drawReference.y);
+						}
+					}
 					break;
 				default:
 					break;

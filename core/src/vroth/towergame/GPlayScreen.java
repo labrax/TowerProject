@@ -19,6 +19,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 
+import vroth.towergame.GConfig.TYPES;
 import vroth.towergame.gmap.GMap;
 import vroth.towergame.gobject.GCreature;
 import vroth.towergame.gobject.GCreature.STATE;
@@ -130,17 +131,36 @@ public class GPlayScreen implements IScreen {
 		}
 	}
 	
+	private boolean validBuild(Vector2 position, TYPES type) {
+		if(type != TYPES.LADDER && type != TYPES.CASTLE && type != TYPES.HOUSE) {
+			if(isInside(new Vector2((int) position.x*70, (int) position.y*70), player.getBody().getPosition(), player.getDimension()) 
+					|| isInside(new Vector2((int) position.x*70+70, (int) position.y*70), player.getBody().getPosition(), player.getDimension())
+					|| isInside(new Vector2((int) position.x*70, (int) position.y*70+70), player.getBody().getPosition(), player.getDimension())
+					|| isInside(new Vector2((int) position.x*70+70, (int) position.y*70+70), player.getBody().getPosition(), player.getDimension())) {
+				return false;
+			}
+		}
+		GTile b = gameMap.getMapLine((int) position.y).getTileBackground((int) position.x);
+		if(b != null && b.getType() != TYPES.NOTHING)
+			return true;
+		boolean[] mask = gameMap.getTileMask((int) position.x, (int) position.y, true);
+		//System.out.println("" + mask[0] + " " + mask[1] + " " + mask[2] + " " + mask[3]);
+		if(mask != null && (mask[0] == true || mask[1] == true || mask[2] == true || mask[3] == true))
+			return true;
+		return false;
+	}
+	
 	private void rightClick(float stateTime) {
-		if(insideRange == true) {
+		GConfig.TYPES type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
+		if(insideRange && validBuild(pointerPosition, type)) {
 			boolean built = false;
 			GObject object = null;
-			GConfig.TYPES type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
 			switch(type) {
 				case LADDER:
 					object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
 					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
 						built = gameMap.insertObject(object, pointerPosition);
-					else if(gameMap.getForegroundObject(pointerPosition) != null && gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.CASTLE)
+					else if(gameMap.getForegroundObject(pointerPosition) != null && (gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.CASTLE || gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.HOUSE))
 						built = gameMap.insertObject(object, pointerPosition);
 					break;
 				case GRASS:
@@ -383,42 +403,6 @@ public class GPlayScreen implements IScreen {
 		
 		if(keycode == Input.Keys.ESCAPE) {
 			caller.endState();
-		}
-		
-		if(keycode == Input.Keys.Z) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/ghost/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
-			creature.setFly();
-			gameCreatures.add(creature);
-		}
-		else if(keycode == Input.Keys.X) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bee/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
-			creature.setFly();
-			gameCreatures.add(creature);
-		}
-		else if(keycode == Input.Keys.C) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/bat/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
-			creature.setFly();
-			gameCreatures.add(creature);
-		}
-		else if(keycode == Input.Keys.V) {
-			GCreature creature = GObjectFactory.getInstance(world).newCreature("enemies/fly/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120), 50, false, true);
-			creature.setFly();
-			gameCreatures.add(creature);
-		}
-		else if(keycode == Input.Keys.B) {
-			GCreature creature = GObjectFactory.getInstance(world).newPlayerCreature("p1/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
-			GObjectFactory.getInstance(world).setCreature(creature);
-			gameCreatures.add(creature);
-		}
-		else if(keycode == Input.Keys.N) {
-			GCreature creature = GObjectFactory.getInstance(world).newPlayerCreature("p2/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
-			GObjectFactory.getInstance(world).setCreature(creature);
-			gameCreatures.add(creature);
-		}
-		else if(keycode == Input.Keys.M) {
-			GCreature creature = GObjectFactory.getInstance(world).newPlayerCreature("p3/", new Vector2(player.getCenter().x + 120,  player.getCenter().y+120));
-			GObjectFactory.getInstance(world).setCreature(creature);
-			gameCreatures.add(creature);
 		}
 		
 		if(GConfig.DEBUG_CONTROLS) {

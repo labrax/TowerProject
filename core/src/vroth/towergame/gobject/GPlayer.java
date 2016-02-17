@@ -94,7 +94,6 @@ public class GPlayer extends GCreature {
 				keyRight = true;
 				break;
 			case Input.Keys.UP:
-			case Input.Keys.SPACE:
 			case Input.Keys.W:
 				keyUp = true;
 				break;
@@ -102,6 +101,9 @@ public class GPlayer extends GCreature {
 			case Input.Keys.S:
 				keyDown = true;
 				isDucking = true;
+				break;
+			case Input.Keys.SPACE:
+				keySpace = true;
 				break;
 			default:
 				break;
@@ -120,7 +122,6 @@ public class GPlayer extends GCreature {
 				keyRight = false;
 				break;
 			case Input.Keys.UP:
-			case Input.Keys.SPACE:
 			case Input.Keys.W:
 				keyUp = false;
 				break;
@@ -128,6 +129,9 @@ public class GPlayer extends GCreature {
 			case Input.Keys.S:
 				keyDown = false;
 				isDucking = false;
+				break;
+			case Input.Keys.SPACE:
+				keySpace = false;
 				break;
 			case Input.Keys.H:
 				hurt();

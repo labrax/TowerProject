@@ -21,7 +21,7 @@ public class GCreature extends GObject {
 	
 	public enum STATE {STOP, WALK, JUMP, FALL, DUCK, DAMAGE, DEAD, FLY, CLIMB};
 
-	protected boolean keyUp, keyLeft, keyRight, keyDown;
+	protected boolean keyUp, keyLeft, keyRight, keyDown, keySpace;
 	
 	protected boolean goRight;
 	
@@ -160,7 +160,6 @@ public class GCreature extends GObject {
 		}
 	}
 	
-	
 	protected void setState(float stateTime, STATE newState) {
 		//System.out.println(currState + " -> " + newState);
 		this.stateTime = stateTime;
@@ -264,13 +263,14 @@ public class GCreature extends GObject {
 				else if(keyUp)
 					body.applyForceToCenter(new Vector2(0, body.getLinearVelocity().y < GConfig.SPEED_WALK ? GConfig.SPEED_WALK * deltaTime : 0), true);
 				
+				if(keySpace)
+					body.setLinearVelocity(new Vector2(0, 0));
+				
 				body.setGravityScale(0);
 				break;
 			case DAMAGE:
-				if(health > 0) {
-					if(equalZero(velocity.y))
+				if(health > 0 && equalZero(velocity.y))
 						setState(stateTime, STATE.STOP);
-				}
 				break;
 			case DUCK:
 				if(isHurt)
