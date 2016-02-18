@@ -3,7 +3,7 @@ package vroth.towergame;
 import com.badlogic.gdx.graphics.Color;
 
 public class GConfig {
-	public static final String GAME_NAME = "TowerProject";
+	public static final String GAME_NAME = "Going Home";
 	
 	public static final String ASSET_PATH = "C:/Users/Victor/Desktop/assets/";
 

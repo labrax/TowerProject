@@ -23,12 +23,15 @@ public class GDatabase {
 	
 	private HashMap<String, Vector2> stateToRefVector;
 	
+	private HashMap<GSound.SOUND, String> musicToFile;
+	
 	private GDatabase() {
 		random = new Random();
 		createItemToFile();
 		createElementToFile();
 		createStateToRefVector();
 		createItemsToCursor();
+		createMusicToFile();
 	}
 	
 	public static GDatabase getInstance() {
@@ -119,5 +122,14 @@ public class GDatabase {
 	
 	public GConfig.TYPES getItemsFromCursorIndex(int id) {
 		return itemsToCursorRegister.get(id);
+	}
+	
+	public void createMusicToFile() {
+		musicToFile = new HashMap<GSound.SOUND, String>();
+		//musicToFile.put(key, value)
+	}
+	
+	public String getMusicToFile(GSound.SOUND sound) {
+		return musicToFile.get(sound);
 	}
 }
