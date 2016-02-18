@@ -23,6 +23,10 @@ public class TowerGame extends ApplicationAdapter implements InputProcessor {
 	private STATE gameState = STATE.TITLE;
 	private boolean changeState = false;
 	
+	public OrthographicCamera getCamera() {
+		return camera;
+	}
+	
 	public void create() {
 		//Gdx.graphics.setWindowedMode(800, 600);
 		GConfig.SCREEN_WIDTH = Gdx.graphics.getWidth();

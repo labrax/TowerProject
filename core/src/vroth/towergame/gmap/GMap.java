@@ -45,6 +45,8 @@ public class GMap {
 	
 	private Vector2 respawn;
 	
+	private int highScore = 0;
+	
 	/**
 	 * Create the game map handler in a physical world
 	 * @param world is the physics world
@@ -148,7 +150,7 @@ public class GMap {
 		return visible;
 	}
 	
-	private boolean[] getObjectMask(int x, int y, GConfig.TYPES type) {
+	public boolean[] getObjectMask(int x, int y, GConfig.TYPES type) {
 		boolean top = false, down = false, left = false, right = false;
 		boolean[] willReturn = new boolean[4];
 		for(int i = 0; i < 4; i++)
@@ -157,32 +159,29 @@ public class GMap {
 		if(y >= mapLines.size())
 			return null;
 
-		GObject object;
+		/*GObject object;
 		object = mapLines.get(y).getStaticObject(x);
 		
 		if(object == null)
-			return null;
+			return null;*/
 		
-		if(object instanceof GTile) {
-			if(mapLines.size() > y) {
-				if(mapLines.get(y).getStaticObject(x-1) != null && (mapLines.get(y).getStaticObject(x-1).getType() == type))
-					left = true;
-				if(mapLines.get(y).getStaticObject(x+1) != null && (mapLines.get(y).getStaticObject(x+1).getType() == type))
-					right = true;
-				if(y-1 >= 0 && mapLines.get(y-1).getStaticObject(x) != null && (mapLines.get(y-1).getStaticObject(x).getType() == type))
-					down = true;
-			}
-			if(mapLines.size() > y+1) {
-				if(mapLines.get(y+1).getStaticObject(x) != null && (mapLines.get(y+1).getStaticObject(x).getType() == type))
-					top = true;
-			}
-		
-			willReturn[0] = top;
-			willReturn[1] = down;
-			willReturn[2] = left;
-			willReturn[3] = right;
-			return willReturn;
+		if(mapLines.size() > y) {
+			if(mapLines.get(y).getStaticObject(x-1) != null && (mapLines.get(y).getStaticObject(x-1).getType() == type))
+				left = true;
+			if(mapLines.get(y).getStaticObject(x+1) != null && (mapLines.get(y).getStaticObject(x+1).getType() == type))
+				right = true;
+			if(y-1 >= 0 && mapLines.get(y-1).getStaticObject(x) != null && (mapLines.get(y-1).getStaticObject(x).getType() == type))
+				down = true;
 		}
+		if(mapLines.size() > y+1) {
+			if(mapLines.get(y+1).getStaticObject(x) != null && (mapLines.get(y+1).getStaticObject(x).getType() == type))
+				top = true;
+		}
+	
+		willReturn[0] = top;
+		willReturn[1] = down;
+		willReturn[2] = left;
+		willReturn[3] = right;
 		return willReturn;
 	}
 	
@@ -200,8 +199,9 @@ public class GMap {
 		for(int i = 0; i < 4; i++)
 			willReturn[i] = false;
 			
-		if(y >= mapLines.size())
+		if(y >= mapLines.size()) {
 			return null;
+		}
 
 		if(mapLines.size() > y) {
 			if(foreground) {
@@ -380,6 +380,11 @@ public class GMap {
 		}
 		if(mapLines.get((int) position.y).getTileForeground((int) position.x) == null) {
 			mapLines.get((int) position.y).setTileForeground((int) position.x, tile);
+			
+			if(tile != null && tile.getType() == TYPES.CASTLE && (int) (position.y+1) > highScore) {
+				//System.out.println("Current highscore is " + (((int) position.y) + 1));
+				highScore = (int) position.y + 1;
+			}
 			return true;
 		}
 		return false;
@@ -604,7 +609,7 @@ public class GMap {
 		//the best option in a concave map, otherwise there will be a 1 line bugged line
 		eqA = -eqA;
 		
-		System.out.println("Using equation " + eqA + "x^2 + " + (eqA > 0 ? 0 : -eqC) + ". GENERATION_HEIGHT is " + GConfig.GENERATION_HEIGHT);
+		//System.out.println("Using equation " + eqA + "x^2 + " + (eqA > 0 ? 0 : -eqC) + ". GENERATION_HEIGHT is " + GConfig.GENERATION_HEIGHT);
 		
 		GConfig.TYPES[][] initialMap = new GConfig.TYPES[GConfig.GENERATION_HEIGHT][];
 		for(int i = 0; i < GConfig.GENERATION_HEIGHT; i++) {
@@ -690,41 +695,54 @@ public class GMap {
 			for(int j = 0; j < GConfig.GENERATION_WIDTH; j++) {
 				Vector2 position = new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2)*GConfig.TILE_SPACING + j*GConfig.TILE_SPACING, i*GConfig.TILE_SPACING);
 				GTile object = null, object2 = null;
-				if(initialMap[i][j] == dirt) {
-					if(r.nextInt(100) < 80) {
-						amountDirt++;
-						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
+				if(GConfig.GEN_BASE && i >= 3 && i < 6 && j >= GConfig.GENERATION_WIDTH/2 - 2 && j < GConfig.GENERATION_WIDTH/2 + 2) {
+					//object = factory.newTile(GConfig.TYPES.CASTLE, position, true);
+					object2 = factory.newTile(GConfig.TYPES.CASTLE, position, false);
+					
+					if(j%5 == 0) {
+						GTile object3 = factory.newTile(GConfig.TYPES.LADDER, position, false);
+						insertObject(object3, new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2) + j, i));
 					}
-					if(r.nextInt(100) < 5) {
+				}
+				else {
+					if(initialMap[i][j] == dirt) {
+						if(r.nextInt(100) < 80) {
+							amountDirt++;
+							object = factory.newTile(GConfig.TYPES.DIRT, position, false);
+						}
+						if(r.nextInt(100) < 5) {
+							amountGold++;
+							object2 = factory.newTile(GConfig.TYPES.COINS, position, true);
+						}
+						else {
+							amountDirt++;
+							object2 = factory.newTile(GConfig.TYPES.DIRT, position, true);
+						}
+					}
+					else if(initialMap[i][j] == gold) {
+						if(r.nextInt(100) < 80) {
+							amountDirt++;
+							object = factory.newTile(GConfig.TYPES.DIRT, position, false);
+						}
 						amountGold++;
 						object2 = factory.newTile(GConfig.TYPES.COINS, position, true);
 					}
-					else {
-						amountDirt++;
-						object2 = factory.newTile(GConfig.TYPES.DIRT, position, true);
-					}
-				}
-				else if(initialMap[i][j] == gold) {
-					if(r.nextInt(100) < 80) {
-						amountDirt++;
-						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
-					}
-					amountGold++;
-					object2 = factory.newTile(GConfig.TYPES.COINS, position, true);
-				}
-				else if(initialMap[i][j] == iron) {
-					if(r.nextInt(100) < 80) {
+					else if(initialMap[i][j] == iron) {
+						if(r.nextInt(100) < 80) {
+							amountIron++;
+							object = factory.newTile(GConfig.TYPES.IRON, position, false);
+						}
+						else if(r.nextInt(100) < 90) {
+							amountDirt++;
+							object = factory.newTile(GConfig.TYPES.DIRT, position, false);
+						}
 						amountIron++;
-						object = factory.newTile(GConfig.TYPES.IRON, position, false);
+						object2 = factory.newTile(GConfig.TYPES.IRON, position, true);
 					}
-					else if(r.nextInt(100) < 90) {
-						amountDirt++;
-						object = factory.newTile(GConfig.TYPES.DIRT, position, false);
-					}
-					amountIron++;
-					object2 = factory.newTile(GConfig.TYPES.IRON, position, true);
 				}
 				
+				if(GConfig.GEN_BASE && object == null && i == 2 && j == (GConfig.GENERATION_WIDTH/2 + 1))
+						insertTile(factory.newTile(GConfig.TYPES.DIRT, position, false), new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2) + j, i), true);
 				if(object != null)
 					insertTile(object, new Vector2((GConfig.MAP_WIDTH/2 - GConfig.GENERATION_WIDTH/2) + j, i), true);
 				if(object2 != null)
@@ -829,9 +847,10 @@ public class GMap {
 			
 			String[] strips = fileData.split("\n");
 			String[] header = strips[0].split(" ");
-			GConfig.MAP_WIDTH = Integer.parseInt(header[0]);
-			int height = Integer.parseInt(header[1]);
-			playerPosition = new Vector2(Float.parseFloat(header[2]), Float.parseFloat(header[3]));
+			highScore = Integer.parseInt(header[0]);
+			GConfig.MAP_WIDTH = Integer.parseInt(header[1]);
+			int height = Integer.parseInt(header[2]);
+			playerPosition = new Vector2(Float.parseFloat(header[3]), Float.parseFloat(header[4]));
 			
 			HashMap<GConfig.TYPES, Integer> itemsHash = new HashMap<GConfig.TYPES, Integer>();
 			
@@ -865,11 +884,12 @@ public class GMap {
 			}
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			System.err.println("Error loading map file " + file);
 			reset();
 			generateMapV2();
-			playerPosition = new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING);
+			//playerPosition = new Vector2(GConfig.MAP_WIDTH/2*GConfig.TILE_SPACING, (GConfig.GENERATION_HEIGHT+1)*GConfig.TILE_SPACING);
+			playerPosition = new Vector2((GConfig.MAP_WIDTH/2+1)*GConfig.TILE_SPACING, 3*GConfig.TILE_SPACING);
 			player = GObjectFactory.getInstance(null).newPlayer(GConfig.PLAYER_FOLDER, playerPosition);
 		}
 		respawn = playerPosition;
@@ -883,7 +903,7 @@ public class GMap {
 			if(openFile.exists())
 				openFile.delete();
 			openFile = Gdx.files.absolute(file);		
-			String data = new String("" + GConfig.MAP_WIDTH + " " + getHeight() + " " + player.getBody().getPosition().x + " " + player.getBody().getPosition().y + "\n");
+			String data = new String("" + highScore + " " + GConfig.MAP_WIDTH + " " + getHeight() + " " + player.getBody().getPosition().x + " " + player.getBody().getPosition().y + "\n");
 			
 			for(GConfig.TYPES type : player.getItems().keySet()) {
 				data = data.concat("" + type + " " + player.getItems().get(type) + " ");
@@ -922,5 +942,9 @@ public class GMap {
 	
 	public Vector2 getRespawn() {
 		return respawn;
+	}
+	
+	public int getHighScore() {
+		return highScore;
 	}
 }

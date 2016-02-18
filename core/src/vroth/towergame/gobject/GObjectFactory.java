@@ -188,11 +188,14 @@ public class GObjectFactory {
 		
 		GResourcesLoader rl = GResourcesLoader.getInstance();
 		Sprite dead = rl.loadSprite(folder + "dead.png");
+		Sprite stand = rl.loadSprite(folder + "stand.png");
 		
 		Array<Sprite> walkArray = new Array<Sprite>();
 		if(walks) {
 			walkArray.add(rl.loadSprite(folder + "walk1.png"));
 			walkArray.add(rl.loadSprite(folder + "walk2.png"));
+			if(rl.loadSprite(folder + "walk3.png") != rl.getErrSprite())
+				walkArray.add(rl.loadSprite(folder + "walk3.png"));
 		}
 		Animation walk = new Animation(GConfig.ANIMATION_FRAME_TIME, walkArray);
 		
@@ -214,7 +217,7 @@ public class GObjectFactory {
 				
 		shape.dispose();
 		
-		GCreature creature = new GCreature(fixture, body, null, null, null, null, null, dead, walk, null, null, fly, null, null, dimension, health, health);
+		GCreature creature = new GCreature(fixture, body, null, null, null, null, stand, dead, walk, null, null, fly, null, null, dimension, health, health);
 		if(flies)
 			creature.setFly();
 		return creature;

@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -43,8 +44,12 @@ public class GTitleScreen implements IScreen {
 	private float lastDown = 0, lastDirection = 0;
 	private boolean isDown = false;
 	
+	private Sprite background;
+	
 	public GTitleScreen(TowerGame caller) {
 		this.caller = caller;
+		
+		background = GResourcesLoader.getInstance().loadSprite("background.png");
 		
 		titleFont = GResourcesLoader.getInstance().getFont("kenpixel_blocks.fnt");
 		titleFont.getData().setScale(0.9f);
@@ -153,6 +158,8 @@ public class GTitleScreen implements IScreen {
 		refPosition.y += player.getDimension().y/2;
 		Vector2 drawReference = new Vector2(GConfig.SCREEN_WIDTH/2-refPosition.x, (float) ((GConfig.SCREEN_HEIGHT/2-refPosition.y) + 20*Math.sin(stateTime)));
 		
+		batch.draw(background, GConfig.SCREEN_WIDTH/2 - 960, 0 + drawReference.y);
+		
 		map.render(batch, stateTime, refPosition, drawReference);
 		
 		if(stateTime - lastDirection > 10) {
@@ -205,6 +212,9 @@ public class GTitleScreen implements IScreen {
 		GConfig.GENERATION_TRIES = bTries;
 		GConfig.MAX_JUMP = bAmountJump;
 		GConfig.DRAW_PLAYER_HEALTH = true;
+		GConfig.GEN_BASE = true;
+		GConfig.DRAW_HIGHSCORE = true;
+		GConfig.DRAW_SHOP = true;
 	}
 
 	@Override

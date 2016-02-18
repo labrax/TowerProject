@@ -62,6 +62,8 @@ public class GCreature extends GObject {
 		keyLeft = false;
 		keyRight = false;
 		keyDown = false;
+		
+		damage = 30;
 	}
 	
 	public void setFly() {
@@ -405,11 +407,11 @@ public class GCreature extends GObject {
 	public void setGoal(Vector2 target) {
 		Vector2 source = getCenter();
 		Vector2 movement = new Vector2(target.x - source.x, target.y - source.y);
-		if(greaterThanZero(movement.x/100)) {
+		if(greaterThanZero(movement.x)) {
 			keyRight = true;
 			keyLeft = false;
 		}
-		else if(lessThanZero(movement.y/100)){
+		else if(lessThanZero(movement.y)){
 			keyRight = false;
 			keyLeft = true;
 		}
@@ -418,11 +420,11 @@ public class GCreature extends GObject {
 			keyLeft = false;
 		}
 		
-		if(greaterThanZero(movement.y/100)) {
+		if(greaterThanZero(movement.y)) {
 			keyUp = true;
 			keyDown = false;
 		}
-		else if(lessThanZero(movement.y/100)){
+		else if(lessThanZero(movement.y)){
 			keyUp = false;
 			keyDown = true;
 		}
@@ -438,5 +440,21 @@ public class GCreature extends GObject {
 	
 	public STATE getState() {
 		return currState;
+	}
+	
+	public boolean isGoingUp() {
+		return keyUp;
+	}
+	
+	public boolean isGoingDown() {
+		return keyDown;
+	}
+	
+	public boolean isGoingLeft() {
+		return keyLeft;
+	}
+	
+	public boolean isGoingRight() {
+		return keyRight;
 	}
 }

@@ -10,6 +10,9 @@ import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Cursor.SystemCursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -59,8 +62,25 @@ public class GPlayScreen implements IScreen {
 	
 	private TowerGame caller;
 	
+	float lastRespawn = 5;
+	
+	GRespawn respawner;
+	
+	private BitmapFont highScoreFont;
+	private GlyphLayout highScoreLayout;
+	
+	private boolean playerRespawn = false;
+	
+	private Sprite background;
+	
 	protected GPlayScreen(TowerGame caller){
 		this.caller = caller;
+		
+		background = GResourcesLoader.getInstance().loadSprite("background.png");
+		
+		highScoreFont = GResourcesLoader.getInstance().getFont("kenpixel_blocks.fnt");
+		highScoreFont.getData().setScale(GConfig.PLAYER_ITEM_FONT_SIZE);
+		highScoreFont.setColor(new Color(1, 0, 0, 1));
 	}
 	
 	public void create(World world) {
@@ -74,6 +94,7 @@ public class GPlayScreen implements IScreen {
 		gameCreatures = new Array<GCreature>();
 		creaturesToRemove = new Array<GCreature>();
 		gameMap = new GMap(world);
+		respawner = new GRespawn(gameCreatures);
 		//gameMap.generateMapV2();
 		
 		GObjectFactory.getInstance(world);
@@ -140,6 +161,18 @@ public class GPlayScreen implements IScreen {
 				return false;
 			}
 		}
+		else if(type == TYPES.LADDER) {
+			boolean[] mask = gameMap.getObjectMask((int) position.x, (int) position.y, type);
+			if(mask != null && (mask[0] == true || mask[1] == true || mask[2] == true || mask[3] == true))
+				return true;
+		}
+		if(position.x < 0 || position.x >= GConfig.MAP_WIDTH)
+			return false;
+		
+		if(gameMap.getHeight() < position.y) {
+			gameMap.insertTile(null, position);
+		}
+		
 		GTile b = gameMap.getMapLine((int) position.y).getTileBackground((int) position.x);
 		if(b != null && b.getType() != TYPES.NOTHING)
 			return true;
@@ -152,37 +185,41 @@ public class GPlayScreen implements IScreen {
 	
 	private void rightClick(float stateTime) {
 		GConfig.TYPES type = GDatabase.getInstance().getItemsFromCursorIndex(cursorSelection);
-		if(insideRange && validBuild(pointerPosition, type)) {
-			boolean built = false;
-			GObject object = null;
-			switch(type) {
-				case LADDER:
-					object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
-					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-						built = gameMap.insertObject(object, pointerPosition);
-					else if(gameMap.getForegroundObject(pointerPosition) != null && (gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.CASTLE || gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.HOUSE))
-						built = gameMap.insertObject(object, pointerPosition);
-					break;
-				case GRASS:
-					object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
-					if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
-						built = gameMap.insertTile((GTile) object, pointerPosition);
-					break;
-				case CASTLE:
-				case HOUSE:
-					object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
-					if(gameMap.insertTile(null, pointerPosition))
-						built = gameMap.insertTile((GTile) object, pointerPosition);
-					break;
-				default:
-					break;
+		if(player.getItems().containsKey(type) && player.getItems().get(type) > 0)
+			if(insideRange && validBuild(pointerPosition, type)) {
+				boolean built = false;
+				GObject object = null;
+				switch(type) {
+					case LADDER:
+						object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+						if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+							built = gameMap.insertObject(object, pointerPosition);
+						else if(gameMap.getForegroundObject(pointerPosition) != null && (gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.CASTLE || gameMap.getForegroundObject(pointerPosition).getType() == GConfig.TYPES.HOUSE))
+							built = gameMap.insertObject(object, pointerPosition);
+						break;
+					case GRASS:
+						object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+						if(gameMap.insertTile(null, pointerPosition) && gameMap.insertObject(null, pointerPosition))
+							built = gameMap.insertTile((GTile) object, pointerPosition);
+						break;
+					case CASTLE:
+					case HOUSE:
+						object = GObjectFactory.getInstance(world).newTile(type, new Vector2(((int) pointerPosition.x)*70, ((int) pointerPosition.y)*70), false);
+						if(gameMap.insertTile(null, pointerPosition))
+							built = gameMap.insertTile((GTile) object, pointerPosition);
+						break;
+					default:
+						break;
+				}
+				if(object != null && built == false)
+					world.destroyBody(object.getBody());
+				if(object != null && object.getType() != GConfig.TYPES.GRASS)
+					GObjectFactory.getInstance(world).setBuilding(object);
+				if(built) {
+					player.getItems().put(type, player.getItems().get(type)-1);
+				}
+				//System.out.println(built);
 			}
-			if(object != null && built == false)
-				world.destroyBody(object.getBody());
-			if(object != null && object.getType() != GConfig.TYPES.GRASS)
-				GObjectFactory.getInstance(world).setBuilding(object);
-			//System.out.println(built);
-		}
 	}
 	
 	private void iterateObjects(float stateTime, float deltaTime) {
@@ -221,13 +258,68 @@ public class GPlayScreen implements IScreen {
 		}
 	}
 	
+	private void creatureAttack(Vector2 attackPosition, float damage, float stateTime, float deltaTime) {
+		//System.out.println(attackPosition);
+		GObject object = gameMap.getObject(attackPosition);
+		if(object != null && object.isIndestructible() == false) {
+			GConfig.TYPES objectType = object.getType();
+			float hp = object.hit(damage * deltaTime);
+			
+			if(hp < 0) {
+				Array<GObject> newObjects = GObjectFactory.getInstance(world).newResource(objectType, new Vector2(object.getBody().getPosition().x + object.getDimension().x/2, object.getBody().getPosition().y + object.getDimension().y/2));
+				for(GObject o : newObjects) {
+					if(gameObjects.size < GConfig.MAX_RESOURCES_ON_GAME) {
+						gameObjects.add(o);
+					}
+					else {
+						world.destroyBody(o.getBody());
+					}
+				}
+				world.destroyBody(object.getBody());
+				gameMap.destroyObject(attackPosition);
+			}
+		}
+	}
+	
+	private Vector2 positionToCoordinate(float x, float y) {
+		return new Vector2(x/70, y/70);
+	}
+	
 	public void iterateCreatures(float deltaTime) {
 		for(GCreature c : gameCreatures) {
-			if(c.getBody().getPosition().y < 0) {
+			if(c.getBody().getPosition().y < 0)
 				c.hit(deltaTime*random.nextInt(GConfig.MAX_WATER_DAMAGE-GConfig.MIN_WATER_DAMAGE) + GConfig.MIN_WATER_DAMAGE);
-			}
 			if(c.getState() != STATE.DEAD && isInside(player.getCenter(), c.getBody().getPosition(), c.getDimension()))
 				player.hit(c.getDamage()*deltaTime/10);
+			
+			if(c.isGoingDown()) {
+				Vector2 attackPosition = positionToCoordinate(c.getBody().getPosition().x, c.getBody().getPosition().y - 5);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+				
+				attackPosition = positionToCoordinate(c.getBody().getPosition().x + c.getDimension().x, c.getBody().getPosition().y - 5);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+			}
+			if(c.isGoingUp()) {
+				Vector2 attackPosition = positionToCoordinate(c.getBody().getPosition().x, c.getBody().getPosition().y + c.getDimension().y + 5);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+				
+				attackPosition = positionToCoordinate(c.getBody().getPosition().x + c.getDimension().x, c.getBody().getPosition().y + c.getDimension().y + 5);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+			}
+			if(c.isGoingLeft()) {
+				Vector2 attackPosition = positionToCoordinate(c.getBody().getPosition().x - 5, c.getBody().getPosition().y);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+				
+				attackPosition = positionToCoordinate(c.getBody().getPosition().x - 5, c.getBody().getPosition().y + c.getDimension().y);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+			}
+			if(c.isGoingRight()) {
+				Vector2 attackPosition = positionToCoordinate(c.getBody().getPosition().x + c.getDimension().x + 5, c.getBody().getPosition().y);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+				
+				attackPosition = positionToCoordinate(c.getBody().getPosition().x + c.getDimension().x + 5, c.getBody().getPosition().y + c.getDimension().y);
+				creatureAttack(attackPosition, c.getDamage(), deltaTime, deltaTime);
+			}
 			c.setGoal(player.getCenter());
 			c.update(stateTime, deltaTime);
 		}
@@ -265,14 +357,29 @@ public class GPlayScreen implements IScreen {
 				HashMap<GConfig.TYPES, Integer> itemsHash = player.getItems();
 				world.destroyBody(player.getBody());
 				player = GObjectFactory.getInstance(world).newPlayer(GConfig.PLAYER_FOLDER, gameMap.getRespawn());
-				for(GConfig.TYPES type : itemsHash.keySet()) {
-					player.addItem(type, itemsHash.get(type));
-				}
+				if(GConfig.KEEP_ITEMS)
+					for(GConfig.TYPES type : itemsHash.keySet()) {
+						player.addItem(type, itemsHash.get(type));
+					}
+				playerRespawn = true;
 			}
 		}
 		creaturesToRemove.clear();
 		
+		if(playerRespawn) {
+			gameCreatures.clear();
+			playerRespawn = false;
+		}
+		
 		iterateCreatures(deltaTime);
+		
+		if(gameCreatures.size < GConfig.MAX_CREATURES_ON_GAME && lastRespawn + GConfig.CURR_RESPAWN_TIME < stateTime) {
+			respawner.respawnSomething(player.getCenter(), gameMap);
+			lastRespawn = stateTime;
+		}
+		GConfig.CURR_RESPAWN_TIME = GConfig.MAX_RESPAWN_TIME - GConfig.FACTOR_RESPAWN*gameMap.getHighScore();
+		if(GConfig.CURR_RESPAWN_TIME < GConfig.MIN_RESPAWN_TIME)
+			GConfig.CURR_RESPAWN_TIME = GConfig.MIN_RESPAWN_TIME;
 		
 		if(GConfig.DEBUG_CONTROLS)
 			refPosition = new Vector2(refX, refY);
@@ -293,6 +400,9 @@ public class GPlayScreen implements IScreen {
 		camera.position.set(refPosition, 0);
 		
 		batch.begin();
+		//render the background
+		batch.draw(background, GConfig.SCREEN_WIDTH/2 - 960, 0 + drawReference.y);
+		
 		//render the map
 		gameMap.render(batch, stateTime, refPosition, drawReference);
 		
@@ -321,6 +431,23 @@ public class GPlayScreen implements IScreen {
 		}
 
 		batch.end();
+		
+		if(GConfig.DRAW_HIGHSCORE) {
+			if(gameMap.isVisible(refPosition, new Vector2(player.getBody().getPosition().x, gameMap.getHighScore()*70-player.getDimension().y/2), new Vector2(1, 1))) {
+				ShapeRenderer sr = new ShapeRenderer();
+				sr.setProjectionMatrix(camera.combined);
+				sr.setColor(Color.RED);
+				sr.begin(ShapeType.Filled);
+				sr.rect(player.getCenter().x - GConfig.SCREEN_WIDTH/2, gameMap.getHighScore()*70 - 1, player.getCenter().x + GConfig.SCREEN_WIDTH/2, 3f);
+				sr.end();
+
+				highScoreLayout = new GlyphLayout(highScoreFont, "Highscore: " + gameMap.getHighScore());
+				batch.begin();
+				highScoreFont.draw(batch, highScoreLayout, 0, gameMap.getHighScore()*70 + drawReference.y + 15);
+				batch.end();
+				//System.out.println("draw");
+			}
+		}
 
 		if(GConfig.DEBUG_PHYSICS)
 			debugRenderer.render(world, camera.combined);
@@ -370,6 +497,12 @@ public class GPlayScreen implements IScreen {
 		}
 		if(keycode == Input.Keys.F10) {
 			GConfig.DRAW_RANGE = !GConfig.DRAW_RANGE;
+		}
+		if(keycode == Input.Keys.F9) {
+			respawner.respawnSomething(player.getCenter(), gameMap);
+		}
+		if(keycode == Input.Keys.F8) {
+			respawner.respawnNearby(player.getCenter(), gameMap);
 		}
 		
 		if(keycode == Input.Keys.CONTROL_LEFT)

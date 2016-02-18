@@ -7,6 +7,7 @@ public class GConfig {
 	
 	public static final String ASSET_PATH = "C:/Users/Victor/Desktop/assets/";
 
+	public static boolean GEN_BASE = false;
 	public static int GENERATION_HEIGHT = 30, GENERATION_WIDTH = 100, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35, TILE_SPACING = 70;
 	/*public static final int iron = 0x10, gold = 0x11, nothing = 0x0, dirt = 0x1, water = 0x2, coin_bronze = 0x20, coin_silver = 0x21, coin_gold = 0x22;
 	public static final int grass = 0xC0;
@@ -17,8 +18,8 @@ public class GConfig {
 	public static enum TYPES {ERR, NOTHING, PICKAXE, IRON, COINS, DIRT, GRASS, CASTLE, HOUSE, LADDER, WATER, BRONZE_COIN, SILVER_COIN, GOLD_COIN, PARTICLE_DIRT, PARTICLE_IRON, DEAD};
 	
 	public static int ON_GAME_RESOURCE_TIME = 15;
-	public static int MAX_RESOURCES_ON_GAME = 200;
-	public static int MAX_CREATURES_ON_GAME = 40;
+	public static int MAX_RESOURCES_ON_GAME = 100;
+	public static int MAX_CREATURES_ON_GAME = 20;
 	
 	public static final int AMOUNT_ITEMS = 5;
 	
@@ -26,8 +27,9 @@ public class GConfig {
 	
 	public static final int MIN_WATER_DAMAGE = 1, MAX_WATER_DAMAGE = 5;
 	
-	public static final int DAMAGE = 100;
+	public static final int DAMAGE = 70;
 	public static boolean DRAW_PLAYER_HEALTH = false;
+	public static boolean DRAW_SHOP = false;
 	public static final int PLAYER_HEALTH = 50;
 	public static int MAX_JUMP = 2;
 	public static final float PLAYER_ITEM_FONT_SIZE = 0.15f;
@@ -36,6 +38,7 @@ public class GConfig {
 	public static boolean DRAW_RANGE = false;
 	public static float MIN_HURT_TIME = 0.4f;
 	public static String PLAYER_FOLDER = "p1/";
+	public static boolean KEEP_ITEMS = true;
 	
 	public static final float CREDITS_TIME = 15f; 
 	
@@ -47,7 +50,8 @@ public class GConfig {
 	
 	public static int SCREEN_HEIGHT, SCREEN_WIDTH;
 	
-	public static Color BACKGROUND_COLOR = new Color(0.70f, 0.85f, 1.0f, 1.0f);
+	//public static Color BACKGROUND_COLOR = new Color(0.70f, 0.85f, 1.0f, 1.0f);
+	public static Color BACKGROUND_COLOR = new Color(0.835f, 0.929f, 0.968f, 1.0f);
 	
 	//TODO: implement
 	//public static float SCALING = 0.8f;
@@ -67,6 +71,22 @@ public class GConfig {
 	
 	public static boolean DEBUG_PHYSICS = false;
 	public static boolean DEBUG_CONTROLS = false;
+	
+	public static boolean DRAW_HIGHSCORE = false;
+	
+	public static final String[] FLYING_MONSTERS = {"bat", "bee", "fly", "ghost"};
+	public static final int[] HP_FLYING_MONSTERS = {30, 25, 15, 50};
+	public static final String[] WALKING_MONSTERS = {"blockbox", "ladybug", "mouse", "slime", "snail", "snake", "spider", "worm"};
+	public static final int[] HP_WALKING_MONSTERS = {30, 15, 20, 35, 15, 10, 30, 15};
+	public static final String[] SWIMING_MONSTERS = {"greenfish", "meangreenfish", "pinkfish"};
+	public static final int[] HP_SWIMING_MONSTERS = {30, 25, 15};
+	public static final String[] SPECIAL_MONSTERS = {"lavaboy"};
+	public static final int[] HP_SPECIAL_MONSTERS = {60};
+	public static float MAX_RESPAWN_TIME = 90;
+	public static float CURR_RESPAWN_TIME = 90;
+	public static float MIN_RESPAWN_TIME = 10;
+	public static float FACTOR_RESPAWN = 0.5f;
+	public static int TRIES_RESPAWN = 25;
 	
 	//collision tests
 	public static final short CATEGORY_FTILE = 0x0001,
