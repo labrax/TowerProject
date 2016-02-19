@@ -1,0 +1,13 @@
+--README--
+
+For compilation you might need to fix these 4 files:
+
+core\.settings\gradle.prefs
+desktop\.settings\gradle.prefs
+html\.settings\gradle.prefs
+.settings\gradle.prefs
+
+At the lines with:
+	"project_dir"
+	"connection_project_dir"
+
