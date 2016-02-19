@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 public class GConfig {
 	public static final String GAME_NAME = "Going Home";
 	
-	public static final String ASSET_PATH = "C:/Users/Victor/Desktop/assets/";
+	public static final String ASSET_PATH = "assets/";
 
 	public static boolean GEN_BASE = false;
 	public static int GENERATION_HEIGHT = 30, GENERATION_WIDTH = 100, GENERATION_TRIES = 100, MAX_AMOUNT_IRON = 35, TILE_SPACING = 70;
