@@ -66,8 +66,8 @@ public class GTitleScreen implements IScreen {
 		
 		startFont.setColor(new Color((float) (1*Math.sin(stateTime)), (float) (1*Math.sin(stateTime)), (float) (1*Math.sin(stateTime)), (float) (1*Math.sin(stateTime))));
 		startLayout = new GlyphLayout(startFont, "Press enter to start");
-		startFontX = (GConfig.SCREEN_WIDTH - titleLayout.width) / 2;
-		startFontY = GConfig.SCREEN_HEIGHT/3 - titleLayout.height / 2;
+		startFontX = (GConfig.SCREEN_WIDTH - startLayout.width) / 2;
+		startFontY = GConfig.SCREEN_HEIGHT/3 - startLayout.height / 2;
 	}
 	
 	public void simpleMap() {
@@ -217,15 +217,11 @@ public class GTitleScreen implements IScreen {
 		GConfig.DRAW_SHOP = true;
 	}
 
-	@Override
 	public void setCreatureForRemoval(GCreature creature) {
-		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	public float getStateTime() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

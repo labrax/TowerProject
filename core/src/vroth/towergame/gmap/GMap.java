@@ -81,9 +81,13 @@ public class GMap {
 		topGrass.add(GResourcesLoader.getInstance().loadSprite("tiles/extra/smallRockMoss.png"));
 		reset();
 	}
-	
+
+	/**
+	 * Resets the map and score
+	 */
 	public void reset() {
 		mapLines = new ArrayList<GMapLine>();
+		highScore = 0;
 	}
 	
 	/**
@@ -150,6 +154,13 @@ public class GMap {
 		return visible;
 	}
 	
+	/**
+	 * Get the mask for an object
+	 * @param x is the x coordinate
+	 * @param y is the y coordinate
+	 * @param type is the object type
+	 * @return a boolean[4] with the mask
+	 */
 	public boolean[] getObjectMask(int x, int y, GConfig.TYPES type) {
 		boolean top = false, down = false, left = false, right = false;
 		boolean[] willReturn = new boolean[4];
@@ -510,8 +521,8 @@ public class GMap {
 				previous[i][j] = new Vector2();
 			}
 		}
-		MapComparator.refVector = target;
-		Comparator<Vector2> comparator = new MapComparator();
+		GMapComparator.refVector = target;
+		Comparator<Vector2> comparator = new GMapComparator();
 		PriorityQueue<Vector2> pq = new PriorityQueue<Vector2>(comparator);
 		distance[(int) origin.y][(int) origin.x] = 0;
 		pq.add(origin);
@@ -587,7 +598,7 @@ public class GMap {
 	
 	/**
 	 * Version 2 of the map generator.
-	 * This version creates an equation y = ax²+c in order to create a mountain for the game.
+	 * This version creates an equation y = axx+c in order to create a mountain for the game.
 	 * - It generates paths of iron
 	 * - It gets some random points and remove
 	 */
